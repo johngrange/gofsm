@@ -15,7 +15,7 @@ var _ = Describe("Threaded FSM", func() {
 	}
 
 	var (
-		stateMachine                           fsm.FSM
+		stateMachine                           fsm.ImmediateFSM
 		data                                   *fsmData
 		onState, offState, startingState, init fsm.FSMState
 		currStateName                          func() string
@@ -38,7 +38,8 @@ var _ = Describe("Threaded FSM", func() {
 
 		offState.AddTransition(onState).SetTrigger("TurnOn")
 		onState.AddTransition(offState).SetTrigger("TurnOff")
-		stateMachine = fsm.NewThreadedFSM(init, data).
+		stateMachine = fsm.NewImmediateFSM(init, data)
+		stateMachine.
 			AddState(startingState).
 			AddState(onState).
 			AddState(offState)
@@ -107,8 +108,8 @@ var _ = Describe("Threaded FSM", func() {
 			Eventually(currStateName).Should(Equal("on"))
 
 		})
-		It("should transition when guard test changes", func() {
-
+		It("should not transition when guard fsm data changes", func() {
+			// There is no underlying threading, so it should not detect the fsm data changes automatically
 			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
 				d := data.(*fsmData)
 				fmt.Fprintf(GinkgoWriter, "%+v", data)
@@ -119,8 +120,24 @@ var _ = Describe("Threaded FSM", func() {
 
 			Consistently(currStateName).Should(Equal("off"))
 			data.followGuardOffToOn = true
-			Eventually(currStateName).Should(Equal("on"))
+			Consistently(currStateName).Should(Equal("off"))
 
+		})
+		It("should transition when guard fsm data changes and Tick() is called", func() {
+			// There is no underlying threading, so it should not detect the fsm data changes automatically
+			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
+				d := data.(*fsmData)
+				fmt.Fprintf(GinkgoWriter, "%+v", data)
+				return d.followGuardOffToOn
+			})
+			data.followGuardOffToOn = false
+			stateMachine.Start()
+
+			Consistently(currStateName).Should(Equal("off"))
+			data.followGuardOffToOn = true
+			Consistently(currStateName).Should(Equal("off"))
+			stateMachine.Tick()
+			Expect(stateMachine.CurrentState().Name()).To(Equal("on"))
 		})
 
 	})

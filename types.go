@@ -10,12 +10,16 @@ type FSMTraceEntry struct {
 
 type FSM interface {
 	AddState(FSMState) FSM
+	AddTracer(Tracer) FSM
 	Dispatch(Event)
 	CurrentState() FSMState
 	Start()
 	Stop()
-	Trace(bool) FSM
-	GetTrace() []FSMTraceEntry
+}
+
+type ImmediateFSM interface {
+	FSM
+	Tick() // Manually check for and progress state changes that are not event driven
 }
 
 type Event interface {
@@ -33,8 +37,14 @@ type FSMState interface {
 	doEntry(fsmData interface{})
 }
 
+type Tracer interface {
+	OnEntry(state FSMState, fsmData interface{})
+	OnExit(state FSMState, fsmData interface{})
+	OnTransition(ev Event, sourceState, targetState FSMState, fsmData interface{})
+}
 type StateEntryFunc func(state FSMState, fsmData interface{})
 type StateExitFunc func(state FSMState, fsmData interface{})
+type StateTransitionFunc func(ev Event, sourceState, targetState FSMState, fsmData interface{})
 
 type TransitionGuard func(fsmData, eventData interface{}) bool
 

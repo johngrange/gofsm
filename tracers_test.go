@@ -69,8 +69,8 @@ var _ = Describe("test tracers", func() {
 			Expect(len(logger.Entries)).To(BeNumerically("==", 13))
 
 			for _, l := range logger.Entries {
-				Expect(l.When).To(BeTemporally(">", startTime))
-				Expect(l.When).To(BeTemporally("<", endTime))
+				Expect(l.When).To(BeTemporally(">=", startTime))
+				Expect(l.When).To(BeTemporally("<=", endTime))
 				Expect(len(l.Message)).To(BeNumerically(">", 0))
 			}
 		})

@@ -9,6 +9,7 @@ type FSMTraceEntry struct {
 }
 
 type FSM interface {
+	Visitable
 	AddState(FSMState) FSM
 	AddTracer(Tracer) FSM
 	Dispatch(Event)
@@ -53,6 +54,16 @@ type Transition interface {
 	Target() FSMState
 	SetTrigger(eventName string) Transition
 	SetGuard(TransitionGuard) Transition
+	GetEventName() string
 	shouldTransitionEv(ev Event, fsmData interface{}) bool // If this transition accepts supplied event and guard is met, then return true
 	shouldTransitionNoEv(fsmData interface{}) bool         // If this transition guard is met, with no need for event, then return true.  will always return false if trigger event set.
+}
+
+type Visitable interface {
+	Visit(Visitor)
+}
+
+type Visitor interface {
+	VisitState(state FSMState)
+	VisitTransition(transition Transition)
 }

@@ -69,3 +69,7 @@ func (f *threadedFsmImpl) AddState(s FSMState) FSM {
 func (f *threadedFsmImpl) CurrentState() FSMState {
 	return f.base.CurrentState()
 }
+
+func (f *threadedFsmImpl) Visit(v Visitor) {
+	f.base.Visit(v)
+}

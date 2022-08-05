@@ -10,9 +10,10 @@ type immediateFSMImpl struct {
 }
 
 func NewImmediateFSM(initialState FSMState, data interface{}) ImmediateFSM {
+
 	return &immediateFSMImpl{
 		running:      false,
-		states:       make([]FSMState, 0),
+		states:       []FSMState{initialState},
 		currentState: initialState,
 		fsmData:      data,
 		tracers:      make([]Tracer, 0),
@@ -97,6 +98,15 @@ func (f *immediateFSMImpl) processEvent(ev Event) {
 		if transition.shouldTransitionEv(ev, f.fsmData) {
 			f.doTransition(ev, transition)
 			f.runToWaitCondition()
+		}
+	}
+}
+
+func (f *immediateFSMImpl) Visit(v Visitor) {
+	for _, state := range f.states {
+		v.VisitState(state)
+		for _, transition := range state.GetTransitions() {
+			v.VisitTransition(transition)
 		}
 	}
 }

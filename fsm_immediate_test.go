@@ -141,4 +141,34 @@ var _ = Describe("Threaded FSM", func() {
 		})
 
 	})
+	When("applying visitor pattern", func() {
+		It("should visit each element once", func() {
+			counter := countingVisitor{}
+			stateMachine.Visit(&counter)
+			Expect(counter.stateCount).To(Equal(4))
+			Expect(counter.transitionCount).To(Equal(4))
+			// Check it doesn't change with running the fsm
+			stateMachine.Start()
+			stateMachine.Dispatch(fsm.NewEvent("TurnOn", nil))
+			Expect(stateMachine.CurrentState().Name()).To(Equal("on"))
+			stateMachine.Dispatch(fsm.NewEvent("TurnOff", nil))
+			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
+			stateMachine.Stop()
+			counter2 := countingVisitor{}
+			stateMachine.Visit(&counter2)
+			Expect(counter).To(Equal(counter2))
+		})
+	})
 })
+
+type countingVisitor struct {
+	stateCount      int
+	transitionCount int
+}
+
+func (c *countingVisitor) VisitState(fsm.FSMState) {
+	c.stateCount++
+}
+func (c *countingVisitor) VisitTransition(fsm.Transition) {
+	c.transitionCount++
+}

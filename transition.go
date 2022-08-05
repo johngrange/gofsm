@@ -40,3 +40,7 @@ func (t *transitionImpl) shouldTransitionEv(ev Event, fsmData interface{}) bool 
 func (t *transitionImpl) shouldTransitionNoEv(fsmData interface{}) bool {
 	return t.triggerEvent == "" && t.guard(fsmData, nil)
 }
+
+func (t *transitionImpl) GetEventName() string {
+	return t.triggerEvent
+}

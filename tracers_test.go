@@ -14,9 +14,9 @@ var _ = Describe("test tracers", func() {
 	}
 
 	var (
-		stateMachine                           fsm.FSM
+		stateMachine                           fsm.ImmediateFSMBuilder
 		data                                   *fsmData
-		onState, offState, startingState, init fsm.FSMState
+		onState, offState, startingState, init fsm.StateBuilder
 	)
 
 	BeforeEach(func() {

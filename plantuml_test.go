@@ -21,9 +21,9 @@ var _ = Describe("Plant UML Rendering", func() {
 	}
 
 	var (
-		stateMachine                           fsm.FSM
+		stateMachine                           fsm.FSMBuilder
 		data                                   *fsmData
-		onState, offState, startingState, init fsm.FSMState
+		onState, offState, startingState, init fsm.StateBuilder
 	)
 
 	When("rendering uml", func() {

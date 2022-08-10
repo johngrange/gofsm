@@ -13,10 +13,10 @@ func newTransition(source, target FSMState) Transition {
 	return &transitionImpl{
 		source: source,
 		target: target,
-		guard: func(state FSMState, fsmData, eventData interface{}) bool {
+		guard: func(fsmData, eventData interface{}) bool {
 			return true
 		},
-		action: func(fromState, toState FSMState, ev Event, fsmData interface{}) {},
+		action: func(ev Event, fsmData interface{}) {},
 	}
 }
 
@@ -41,10 +41,10 @@ func (t *transitionImpl) SetAction(action TransitionAction) Transition {
 }
 
 func (t *transitionImpl) shouldTransitionEv(ev Event, fsmData interface{}) bool {
-	return ev.Name() == t.triggerEvent && t.guard(t.source, fsmData, ev.Data())
+	return ev.Name() == t.triggerEvent && t.guard(fsmData, ev.Data())
 }
 func (t *transitionImpl) shouldTransitionNoEv(fsmData interface{}) bool {
-	return t.triggerEvent == "" && t.guard(t.source, fsmData, nil)
+	return t.triggerEvent == "" && t.guard(fsmData, nil)
 }
 
 func (t *transitionImpl) GetEventName() string {
@@ -52,5 +52,9 @@ func (t *transitionImpl) GetEventName() string {
 }
 
 func (t *transitionImpl) doAction(ev Event, fsmData interface{}) {
-	t.action(t.source, t.target, ev, fsmData)
+	t.action(ev, fsmData)
+}
+
+func (t *transitionImpl) IsLocal() bool {
+	return t.source == t.target
 }

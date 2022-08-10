@@ -37,17 +37,10 @@ type FSMState interface {
 	AddTransition(target FSMState) Transition
 	OnEntry(Action) FSMState
 	OnExit(Action) FSMState
-	SetDataFactory(StateDataFactory)
-	GetCurrentData() interface{}
 	Name() string
 	GetTransitions() []Transition
 	doExit(fsmData interface{})
 	doEntry(fsmData interface{})
-	initialiseStateData()
-}
-
-func DefaultStateDataFactory() interface{} {
-	return nil
 }
 
 type Tracer interface {
@@ -56,8 +49,8 @@ type Tracer interface {
 	OnTransition(ev Event, sourceState, targetState FSMState, fsmData interface{})
 }
 type Action func(state FSMState, fsmData interface{})
-type TransitionAction func(fromState, toState FSMState, ev Event, fsmData interface{})
-type TransitionGuard func(fromState FSMState, fsmData, eventData interface{}) bool
+type TransitionAction func(ev Event, fsmData interface{})
+type TransitionGuard func(fsmData, eventData interface{}) bool
 
 type Transition interface {
 	Source() FSMState
@@ -65,6 +58,7 @@ type Transition interface {
 	SetTrigger(eventName string) Transition
 	SetGuard(TransitionGuard) Transition
 	SetAction(TransitionAction) Transition
+	IsLocal() bool
 	GetEventName() string
 	shouldTransitionEv(ev Event, fsmData interface{}) bool // If this transition accepts supplied event and guard is met, then return true
 	shouldTransitionNoEv(fsmData interface{}) bool         // If this transition guard is met, with no need for event, then return true.  will always return false if trigger event set.

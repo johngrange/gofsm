@@ -18,7 +18,7 @@ type threadedFsmImpl struct {
 const eventQueueLength = 50
 const dataPollPeriod = time.Millisecond * 10
 
-func NewThreadedFSM(initialState FSMState, data interface{}) FSM {
+func NewThreadedFSM(initialState State, data interface{}) FSMBuilder {
 	return &threadedFsmImpl{
 		base:       NewImmediateFSM(initialState, data).(*immediateFSMImpl),
 		evalMX:     sync.Mutex{},
@@ -58,15 +58,15 @@ func (f *threadedFsmImpl) Dispatch(ev Event) {
 	}
 }
 
-func (f *threadedFsmImpl) AddTracer(t Tracer) FSM {
+func (f *threadedFsmImpl) AddTracer(t Tracer) FSMBuilder {
 	f.base.AddTracer(t)
 	return f
 }
-func (f *threadedFsmImpl) AddState(s FSMState) FSM {
+func (f *threadedFsmImpl) AddState(s State) FSMBuilder {
 	f.base.AddState(s)
 	return f
 }
-func (f *threadedFsmImpl) CurrentState() FSMState {
+func (f *threadedFsmImpl) CurrentState() State {
 	return f.base.CurrentState()
 }
 

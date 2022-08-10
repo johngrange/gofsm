@@ -2,35 +2,35 @@ package fsm
 
 type immediateFSMImpl struct {
 	running      bool
-	states       []FSMState
-	currentState FSMState
+	states       []State
+	currentState State
 	fsmData      interface{}
 	tracers      []Tracer
 	doTrace      bool
 }
 
-func NewImmediateFSM(initialState FSMState, data interface{}) ImmediateFSM {
+func NewImmediateFSM(initialState State, data interface{}) ImmediateFSMBuilder {
 
 	return &immediateFSMImpl{
 		running:      false,
-		states:       []FSMState{initialState},
+		states:       []State{initialState},
 		currentState: initialState,
 		fsmData:      data,
 		tracers:      make([]Tracer, 0),
 	}
 }
 
-func (f *immediateFSMImpl) AddTracer(t Tracer) FSM {
+func (f *immediateFSMImpl) AddTracer(t Tracer) ImmediateFSMBuilder {
 	f.tracers = append(f.tracers, t)
 	return f
 }
 
-func (f *immediateFSMImpl) traceTransition(ev Event, source, target FSMState) {
+func (f *immediateFSMImpl) traceTransition(ev Event, source, target State) {
 	for _, t := range f.tracers {
 		t.OnTransition(ev, source, target, f.fsmData)
 	}
 }
-func (f *immediateFSMImpl) AddState(s FSMState) FSM {
+func (f *immediateFSMImpl) AddState(s State) ImmediateFSMBuilder {
 	f.states = append(f.states, s)
 	return f
 }
@@ -89,7 +89,7 @@ func (f *immediateFSMImpl) doTransition(ev Event, transition Transition) {
 		f.traceOnEntry(nextState, f.fsmData)
 	}
 }
-func (f *immediateFSMImpl) CurrentState() FSMState {
+func (f *immediateFSMImpl) CurrentState() State {
 	return f.currentState
 }
 func (f *immediateFSMImpl) Dispatch(ev Event) {
@@ -98,12 +98,12 @@ func (f *immediateFSMImpl) Dispatch(ev Event) {
 	}
 }
 
-func (f *immediateFSMImpl) traceOnEntry(state FSMState, fsmData interface{}) {
+func (f *immediateFSMImpl) traceOnEntry(state State, fsmData interface{}) {
 	for _, t := range f.tracers {
 		t.OnEntry(state, fsmData)
 	}
 }
-func (f *immediateFSMImpl) traceOnExit(state FSMState, fsmData interface{}) {
+func (f *immediateFSMImpl) traceOnExit(state State, fsmData interface{}) {
 	for _, t := range f.tracers {
 		t.OnExit(state, fsmData)
 	}

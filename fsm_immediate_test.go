@@ -15,9 +15,9 @@ var _ = Describe("Threaded FSM", func() {
 	}
 
 	var (
-		stateMachine                           fsm.ImmediateFSM
+		stateMachine                           fsm.ImmediateFSMBuilder
 		data                                   *fsmData
-		onState, offState, startingState, init fsm.FSMState
+		onState, offState, startingState, init fsm.StateBuilder
 		currStateName                          func() string
 	)
 
@@ -166,7 +166,7 @@ type countingVisitor struct {
 	transitionCount int
 }
 
-func (c *countingVisitor) VisitState(fsm.FSMState) {
+func (c *countingVisitor) VisitState(fsm.State) {
 	c.stateCount++
 }
 func (c *countingVisitor) VisitTransition(fsm.Transition) {

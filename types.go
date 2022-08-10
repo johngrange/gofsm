@@ -10,12 +10,22 @@ type FSMTraceEntry struct {
 	SourceState, TargetState string
 }
 
+type FSMBuilder interface {
+	AddState(State) FSMBuilder
+	AddTracer(Tracer) FSMBuilder
+	FSM
+}
+
+type ImmediateFSMBuilder interface {
+	AddState(State) ImmediateFSMBuilder
+	AddTracer(Tracer) ImmediateFSMBuilder
+	ImmediateFSM
+}
+
 type FSM interface {
 	Visitable
-	AddState(FSMState) FSM
-	AddTracer(Tracer) FSM
 	Dispatch(Event)
-	CurrentState() FSMState
+	CurrentState() State
 	Start()
 	Stop()
 	GetData() interface{}
@@ -31,12 +41,14 @@ type Event interface {
 	Data() interface{}
 }
 
-type StateDataFactory func() interface{}
+type StateBuilder interface {
+	AddTransition(target State) TransitionBuilder
+	OnEntry(Action) State
+	OnExit(Action) State
+	State
+}
 
-type FSMState interface {
-	AddTransition(target FSMState) Transition
-	OnEntry(Action) FSMState
-	OnExit(Action) FSMState
+type State interface {
 	Name() string
 	GetTransitions() []Transition
 	doExit(fsmData interface{})
@@ -44,20 +56,24 @@ type FSMState interface {
 }
 
 type Tracer interface {
-	OnEntry(state FSMState, fsmData interface{})
-	OnExit(state FSMState, fsmData interface{})
-	OnTransition(ev Event, sourceState, targetState FSMState, fsmData interface{})
+	OnEntry(state State, fsmData interface{})
+	OnExit(state State, fsmData interface{})
+	OnTransition(ev Event, sourceState, targetState State, fsmData interface{})
 }
-type Action func(state FSMState, fsmData interface{})
-type TransitionAction func(ev Event, fsmData interface{})
+type Action func(state State, fsmData interface{})
+type TransitionEffect func(ev Event, fsmData interface{})
 type TransitionGuard func(fsmData, eventData interface{}) bool
 
+type TransitionBuilder interface {
+	SetTrigger(eventName string) TransitionBuilder
+	SetGuard(TransitionGuard) TransitionBuilder
+	SetEffect(TransitionEffect) TransitionBuilder
+	Transition
+}
+
 type Transition interface {
-	Source() FSMState
-	Target() FSMState
-	SetTrigger(eventName string) Transition
-	SetGuard(TransitionGuard) Transition
-	SetAction(TransitionAction) Transition
+	Source() State
+	Target() State
 	IsLocal() bool
 	GetEventName() string
 	shouldTransitionEv(ev Event, fsmData interface{}) bool // If this transition accepts supplied event and guard is met, then return true
@@ -70,6 +86,6 @@ type Visitable interface {
 }
 
 type Visitor interface {
-	VisitState(state FSMState)
+	VisitState(state State)
 	VisitTransition(transition Transition)
 }

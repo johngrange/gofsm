@@ -21,8 +21,8 @@ var _ = Describe("Tests for data in states", func() {
 	}
 
 	var (
-		paymentMeterSM                                              fsm.ImmediateFSM
-		idleState, acceptingPaymentState, printingTicketState, init fsm.FSMState
+		paymentMeterSM                                              fsm.ImmediateFSMBuilder
+		idleState, acceptingPaymentState, printingTicketState, init fsm.StateBuilder
 	)
 
 	BeforeEach(func() {
@@ -42,7 +42,7 @@ var _ = Describe("Tests for data in states", func() {
 
 		init.AddTransition(idleState)
 
-		idleState.AddTransition(acceptingPaymentState).SetTrigger("evInsertCoin").SetAction(
+		idleState.AddTransition(acceptingPaymentState).SetTrigger("evInsertCoin").SetEffect(
 			func(ev fsm.Event, fsmData interface{}) {
 				stateData := &(fsmData).(*paymentMeter).currentPayment
 				fmt.Fprintf(GinkgoWriter, "stateData: %+v\n", stateData)
@@ -53,7 +53,7 @@ var _ = Describe("Tests for data in states", func() {
 			},
 		) // parameter is coin value: uint
 
-		acceptingPaymentState.AddTransition(acceptingPaymentState).SetTrigger("evInsertCoin").SetAction(
+		acceptingPaymentState.AddTransition(acceptingPaymentState).SetTrigger("evInsertCoin").SetEffect(
 			func(ev fsm.Event, fsmData interface{}) {
 				stateData := &(fsmData).(*paymentMeter).currentPayment
 				fmt.Fprintf(GinkgoWriter, "stateData: %+v\n", stateData)
@@ -72,14 +72,14 @@ var _ = Describe("Tests for data in states", func() {
 
 				return meterData.currentPayment.coinValue >= meterData.ticketCost
 			}).
-			SetAction(func(ev fsm.Event, fsmData interface{}) {
+			SetEffect(func(ev fsm.Event, fsmData interface{}) {
 				meter := (fsmData).(*paymentMeter)
 				fmt.Fprintf(GinkgoWriter, "Printing ticket for %dp\n", meter.currentPayment.coinValue)
 				meter.paymentsCollected += meter.currentPayment.coinValue
 				meter.ticketsIssued++
 			})
 
-		acceptingPaymentState.OnExit(func(state fsm.FSMState, fsmData interface{}) {
+		acceptingPaymentState.OnExit(func(state fsm.State, fsmData interface{}) {
 			fmt.Fprintf(GinkgoWriter, "onExit")
 			meterData := (fsmData).(*paymentMeter)
 			meterData.currentPayment.coinValue = 0

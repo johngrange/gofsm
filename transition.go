@@ -1,14 +1,14 @@
 package fsm
 
 type transitionImpl struct {
-	source       FSMState
-	target       FSMState
+	source       State
+	target       State
 	guard        TransitionGuard
-	action       TransitionAction
+	action       TransitionEffect
 	triggerEvent string
 }
 
-func newTransition(source, target FSMState) Transition {
+func newTransition(source, target State) TransitionBuilder {
 
 	return &transitionImpl{
 		source: source,
@@ -20,22 +20,22 @@ func newTransition(source, target FSMState) Transition {
 	}
 }
 
-func (t *transitionImpl) Source() FSMState {
+func (t *transitionImpl) Source() State {
 	return t.source
 }
-func (t *transitionImpl) Target() FSMState {
+func (t *transitionImpl) Target() State {
 	return t.target
 }
-func (t *transitionImpl) SetTrigger(eventName string) Transition {
+func (t *transitionImpl) SetTrigger(eventName string) TransitionBuilder {
 	t.triggerEvent = eventName
 	return t
 }
 
-func (t *transitionImpl) SetGuard(guard TransitionGuard) Transition {
+func (t *transitionImpl) SetGuard(guard TransitionGuard) TransitionBuilder {
 	t.guard = guard
 	return t
 }
-func (t *transitionImpl) SetAction(action TransitionAction) Transition {
+func (t *transitionImpl) SetEffect(action TransitionEffect) TransitionBuilder {
 	t.action = action
 	return t
 }

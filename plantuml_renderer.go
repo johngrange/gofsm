@@ -31,7 +31,7 @@ type plantUMLVisitor struct {
 	seenFirstState bool
 }
 
-func (p *plantUMLVisitor) VisitState(state FSMState) {
+func (p *plantUMLVisitor) VisitState(state State) {
 	if !p.seenFirstState {
 		fmt.Fprintf(p.w, "[*] --> %s\n", state.Name())
 		p.seenFirstState = true

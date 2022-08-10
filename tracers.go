@@ -15,15 +15,15 @@ func NewStateCounter() *StateCounter {
 	}
 }
 
-func (s *StateCounter) OnEntry(state FSMState, fsmData interface{}) {
+func (s *StateCounter) OnEntry(state State, fsmData interface{}) {
 	val := s.Counts[state.Name()]
 	val++
 	s.Counts[state.Name()] = val
 }
-func (s *StateCounter) OnExit(state FSMState, fsmData interface{}) {
+func (s *StateCounter) OnExit(state State, fsmData interface{}) {
 
 }
-func (s *StateCounter) OnTransition(ev Event, sourceState, targetState FSMState, fsmData interface{}) {
+func (s *StateCounter) OnTransition(ev Event, sourceState, targetState State, fsmData interface{}) {
 
 }
 
@@ -42,19 +42,19 @@ func NewFSMLogger() *FSMLogger {
 	}
 }
 
-func (l *FSMLogger) OnEntry(state FSMState, fsmData interface{}) {
+func (l *FSMLogger) OnEntry(state State, fsmData interface{}) {
 	l.Entries = append(l.Entries, FSMLogEntry{
 		time.Now(),
 		fmt.Sprintf("Entered State: %s, state: %+v, fsm: %+v", state.Name(), state, fsmData),
 	})
 }
-func (l *FSMLogger) OnExit(state FSMState, fsmData interface{}) {
+func (l *FSMLogger) OnExit(state State, fsmData interface{}) {
 	l.Entries = append(l.Entries, FSMLogEntry{
 		time.Now(),
 		fmt.Sprintf("Exited State: %s, state: %+v, fsm: %+v", state.Name(), state, fsmData),
 	})
 }
-func (l *FSMLogger) OnTransition(ev Event, sourceState, targetState FSMState, fsmData interface{}) {
+func (l *FSMLogger) OnTransition(ev Event, sourceState, targetState State, fsmData interface{}) {
 	l.Entries = append(l.Entries, FSMLogEntry{
 		time.Now(),
 		fmt.Sprintf("Transitioning event: %+v, Source, %s: %+v+ Target: %s:%+v, fsm: %+v", ev, sourceState.Name(), sourceState, targetState.Name(), targetState, fsmData),

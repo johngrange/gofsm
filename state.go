@@ -3,8 +3,8 @@ package fsm
 type fsmStateImpl struct {
 	name        string
 	transitions []Transition
-	onEntry     StateEntryFunc
-	onExit      StateExitFunc
+	onEntry     Action
+	onExit      Action
 }
 
 func NewState(name string) FSMState {
@@ -20,14 +20,14 @@ func (s *fsmStateImpl) Name() string {
 	return s.name
 }
 
-func (s *fsmStateImpl) OnEntry(f StateEntryFunc) FSMState {
+func (s *fsmStateImpl) OnEntry(f Action) FSMState {
 	s.onEntry = f
 	return s
 }
 func (s *fsmStateImpl) doEntry(fsmData interface{}) {
 	s.onEntry(s, fsmData)
 }
-func (s *fsmStateImpl) OnExit(f StateExitFunc) FSMState {
+func (s *fsmStateImpl) OnExit(f Action) FSMState {
 	s.onExit = f
 	return s
 }

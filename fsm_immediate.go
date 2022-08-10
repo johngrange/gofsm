@@ -38,6 +38,7 @@ func (f *immediateFSMImpl) AddState(s FSMState) FSM {
 func (f *immediateFSMImpl) Start() {
 	f.running = true
 	f.traceOnEntry(f.currentState, f.fsmData)
+	f.currentState.doEntry(f.fsmData)
 	f.runToWaitCondition()
 }
 func (f *immediateFSMImpl) Stop() {
@@ -66,12 +67,27 @@ func (f *immediateFSMImpl) runToWaitCondition() {
 	}
 }
 func (f *immediateFSMImpl) doTransition(ev Event, transition Transition) {
-	f.currentState.doExit(f.fsmData)
-	f.traceOnExit(f.currentState, f.fsmData)
+
+	// UML spec 14.2.3.4.5, 14.2.3.4.6
+	// state is exited after exit action completes
+
+	// we are in new state before transition effect and new state entry actions called
+
+	// if local transition, do not call exit or entry actions
+
+	oldState := f.currentState
+	nextState := transition.Target()
+
+	transition.doAction(ev, f.fsmData)
 	f.traceTransition(ev, f.currentState, transition.Target())
-	f.currentState = transition.Target()
-	f.currentState.doEntry(f.fsmData)
-	f.traceOnEntry(f.currentState, f.fsmData)
+
+	if !transition.IsLocal() {
+		oldState.doExit(f.fsmData)
+		f.traceOnExit(oldState, f.fsmData)
+		f.currentState = nextState
+		nextState.doEntry(f.fsmData)
+		f.traceOnEntry(nextState, f.fsmData)
+	}
 }
 func (f *immediateFSMImpl) CurrentState() FSMState {
 	return f.currentState
@@ -109,4 +125,8 @@ func (f *immediateFSMImpl) Visit(v Visitor) {
 			v.VisitTransition(transition)
 		}
 	}
+}
+
+func (f *immediateFSMImpl) GetData() interface{} {
+	return f.fsmData
 }

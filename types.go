@@ -1,6 +1,8 @@
 package fsm
 
-import "time"
+import (
+	"time"
+)
 
 type FSMTraceEntry struct {
 	TransitionTime           time.Time
@@ -16,6 +18,7 @@ type FSM interface {
 	CurrentState() FSMState
 	Start()
 	Stop()
+	GetData() interface{}
 }
 
 type ImmediateFSM interface {
@@ -28,10 +31,12 @@ type Event interface {
 	Data() interface{}
 }
 
+type StateDataFactory func() interface{}
+
 type FSMState interface {
 	AddTransition(target FSMState) Transition
-	OnEntry(StateEntryFunc) FSMState
-	OnExit(StateExitFunc) FSMState
+	OnEntry(Action) FSMState
+	OnExit(Action) FSMState
 	Name() string
 	GetTransitions() []Transition
 	doExit(fsmData interface{})
@@ -43,10 +48,8 @@ type Tracer interface {
 	OnExit(state FSMState, fsmData interface{})
 	OnTransition(ev Event, sourceState, targetState FSMState, fsmData interface{})
 }
-type StateEntryFunc func(state FSMState, fsmData interface{})
-type StateExitFunc func(state FSMState, fsmData interface{})
-type StateTransitionFunc func(ev Event, sourceState, targetState FSMState, fsmData interface{})
-
+type Action func(state FSMState, fsmData interface{})
+type TransitionAction func(ev Event, fsmData interface{})
 type TransitionGuard func(fsmData, eventData interface{}) bool
 
 type Transition interface {
@@ -54,9 +57,12 @@ type Transition interface {
 	Target() FSMState
 	SetTrigger(eventName string) Transition
 	SetGuard(TransitionGuard) Transition
+	SetAction(TransitionAction) Transition
+	IsLocal() bool
 	GetEventName() string
 	shouldTransitionEv(ev Event, fsmData interface{}) bool // If this transition accepts supplied event and guard is met, then return true
 	shouldTransitionNoEv(fsmData interface{}) bool         // If this transition guard is met, with no need for event, then return true.  will always return false if trigger event set.
+	doAction(ev Event, fsmData interface{})
 }
 
 type Visitable interface {

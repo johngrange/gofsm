@@ -73,3 +73,7 @@ func (f *threadedFsmImpl) CurrentState() FSMState {
 func (f *threadedFsmImpl) Visit(v Visitor) {
 	f.base.Visit(v)
 }
+
+func (f *threadedFsmImpl) GetData() interface{} {
+	return f.base.fsmData
+}

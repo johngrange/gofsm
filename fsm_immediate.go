@@ -37,7 +37,9 @@ func (f *immediateFSMImpl) AddState(s FSMState) FSM {
 
 func (f *immediateFSMImpl) Start() {
 	f.running = true
+	f.currentState.initialiseStateData()
 	f.traceOnEntry(f.currentState, f.fsmData)
+	f.currentState.doEntry(f.fsmData)
 	f.runToWaitCondition()
 }
 func (f *immediateFSMImpl) Stop() {
@@ -66,11 +68,16 @@ func (f *immediateFSMImpl) runToWaitCondition() {
 	}
 }
 func (f *immediateFSMImpl) doTransition(ev Event, transition Transition) {
-	f.currentState.doExit(f.fsmData)
+	nextState := transition.Target()
+	if nextState.Name() != f.currentState.Name() {
+		nextState.initialiseStateData()
+	}
+	transition.doAction(ev, f.fsmData) // do any access/writes to either state as required
+	f.currentState.doExit(f.fsmData)   // tidy up old state if required
 	f.traceOnExit(f.currentState, f.fsmData)
 	f.traceTransition(ev, f.currentState, transition.Target())
-	f.currentState = transition.Target()
-	f.currentState.doEntry(f.fsmData)
+	f.currentState = nextState
+	nextState.doEntry(f.fsmData) // prepare data in target state
 	f.traceOnEntry(f.currentState, f.fsmData)
 }
 func (f *immediateFSMImpl) CurrentState() FSMState {
@@ -109,4 +116,8 @@ func (f *immediateFSMImpl) Visit(v Visitor) {
 			v.VisitTransition(transition)
 		}
 	}
+}
+
+func (f *immediateFSMImpl) GetData() interface{} {
+	return f.fsmData
 }

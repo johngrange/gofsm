@@ -86,7 +86,7 @@ var _ = Describe("Threaded FSM", func() {
 	})
 	When("not started", func() {
 		It("should not transition if data changes", func() {
-			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
+			offState.AddTransition(onState).SetGuard(func(state fsm.FSMState, data, eventData interface{}) bool {
 				return true
 			})
 			Expect(stateMachine.CurrentState()).NotTo(BeNil())
@@ -96,7 +96,7 @@ var _ = Describe("Threaded FSM", func() {
 	})
 	When("started", func() {
 		It("should not transition if guard evaluates to false", func() {
-			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
+			offState.AddTransition(onState).SetGuard(func(state fsm.FSMState, data, eventData interface{}) bool {
 				return false
 			})
 			stateMachine.Start()
@@ -104,7 +104,7 @@ var _ = Describe("Threaded FSM", func() {
 
 		})
 		It("should not transition if guard evaluates to true", func() {
-			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
+			offState.AddTransition(onState).SetGuard(func(state fsm.FSMState, data, eventData interface{}) bool {
 				return true
 			})
 			stateMachine.Start()
@@ -113,7 +113,7 @@ var _ = Describe("Threaded FSM", func() {
 		})
 		It("should transition when guard test changes", func() {
 
-			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
+			offState.AddTransition(onState).SetGuard(func(state fsm.FSMState, data, eventData interface{}) bool {
 				d := data.(*fsmData)
 				fmt.Fprintf(GinkgoWriter, "%+v", data)
 				return d.followGuardOffToOn

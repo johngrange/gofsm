@@ -6,19 +6,21 @@ import (
 )
 
 type StateCounter struct {
-	Counts map[string]uint64
+	StateCounts         map[string]uint64
+	RejectedEventCounts map[string]uint64
 }
 
 func NewStateCounter() *StateCounter {
 	return &StateCounter{
-		Counts: make(map[string]uint64),
+		StateCounts:         make(map[string]uint64),
+		RejectedEventCounts: make(map[string]uint64),
 	}
 }
 
 func (s *StateCounter) OnEntry(state State, fsmData interface{}) {
-	val := s.Counts[state.Name()]
+	val := s.StateCounts[state.Name()]
 	val++
-	s.Counts[state.Name()] = val
+	s.StateCounts[state.Name()] = val
 }
 func (s *StateCounter) OnExit(state State, fsmData interface{}) {
 
@@ -27,13 +29,20 @@ func (s *StateCounter) OnTransition(ev Event, sourceState, targetState State, fs
 
 }
 
+func (s *StateCounter) OnRejectedEvent(ev Event, state State, fsmData interface{}) {
+	count := s.RejectedEventCounts[ev.Name()]
+	count++
+	s.RejectedEventCounts[ev.Name()] = count
+}
+
 type FSMLogEntry struct {
 	When    time.Time
 	Message string
 }
 
 type FSMLogger struct {
-	Entries []FSMLogEntry
+	Entries  []FSMLogEntry
+	Detailed bool
 }
 
 func NewFSMLogger() *FSMLogger {
@@ -43,21 +52,48 @@ func NewFSMLogger() *FSMLogger {
 }
 
 func (l *FSMLogger) OnEntry(state State, fsmData interface{}) {
+	detail := ""
+	if l.Detailed {
+		detail = fmt.Sprintf(": state: %+v, fsm: %+v", state, fsmData)
+	}
 	l.Entries = append(l.Entries, FSMLogEntry{
 		time.Now(),
-		fmt.Sprintf("Entered State: %s, state: %+v, fsm: %+v", state.Name(), state, fsmData),
+		fmt.Sprintf("En  : %s%s", state.Name(), detail),
 	})
 }
 func (l *FSMLogger) OnExit(state State, fsmData interface{}) {
+	detail := ""
+	if l.Detailed {
+		detail = fmt.Sprintf(": state: %+v, fsm: %+v", state, fsmData)
+	}
 	l.Entries = append(l.Entries, FSMLogEntry{
 		time.Now(),
-		fmt.Sprintf("Exited State: %s, state: %+v, fsm: %+v", state.Name(), state, fsmData),
+		fmt.Sprintf("Ex  : %s%s", state.Name(), detail),
 	})
 }
 func (l *FSMLogger) OnTransition(ev Event, sourceState, targetState State, fsmData interface{}) {
+	detail := ""
+	if l.Detailed {
+		detail = fmt.Sprintf(":  source, %+v, target: %+v, fsm: %+v", sourceState, targetState, fsmData)
+	}
+	evName := ""
+	if ev != nil {
+		evName = ev.Name()
+	}
 	l.Entries = append(l.Entries, FSMLogEntry{
 		time.Now(),
-		fmt.Sprintf("Transitioning event: %+v, Source, %s: %+v+ Target: %s:%+v, fsm: %+v", ev, sourceState.Name(), sourceState, targetState.Name(), targetState, fsmData),
+		fmt.Sprintf("Tr  : %s --> %s [%s]%s", sourceState.Name(), targetState.Name(), evName, detail),
 	})
 
+}
+
+func (l *FSMLogger) OnRejectedEvent(ev Event, state State, fsmData interface{}) {
+	detail := ""
+	if l.Detailed {
+		detail = fmt.Sprintf(":  event, %+v, state: %+v, fsm: %+v", ev, state, fsmData)
+	}
+	l.Entries = append(l.Entries, FSMLogEntry{
+		time.Now(),
+		fmt.Sprintf("Rej : %s in %s%s", ev.Name(), state.Name(), detail),
+	})
 }

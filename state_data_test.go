@@ -43,7 +43,7 @@ var _ = Describe("Tests for data in states", func() {
 		init.AddTransition(idleState)
 
 		idleState.AddTransition(acceptingPaymentState).SetTrigger("evInsertCoin").SetEffect(
-			func(ev fsm.Event, fsmData interface{}) {
+			func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				stateData := &(fsmData).(*paymentMeter).currentPayment
 				fmt.Fprintf(GinkgoWriter, "stateData: %+v\n", stateData)
 				coinAmount := ev.Data().(uint)
@@ -54,7 +54,7 @@ var _ = Describe("Tests for data in states", func() {
 		) // parameter is coin value: uint
 
 		acceptingPaymentState.AddTransition(acceptingPaymentState).SetTrigger("evInsertCoin").SetEffect(
-			func(ev fsm.Event, fsmData interface{}) {
+			func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				stateData := &(fsmData).(*paymentMeter).currentPayment
 				fmt.Fprintf(GinkgoWriter, "stateData: %+v\n", stateData)
 
@@ -72,15 +72,15 @@ var _ = Describe("Tests for data in states", func() {
 
 				return meterData.currentPayment.coinValue >= meterData.ticketCost
 			}).
-			SetEffect(func(ev fsm.Event, fsmData interface{}) {
+			SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				meter := (fsmData).(*paymentMeter)
 				fmt.Fprintf(GinkgoWriter, "Printing ticket for %dp\n", meter.currentPayment.coinValue)
 				meter.paymentsCollected += meter.currentPayment.coinValue
 				meter.ticketsIssued++
 			})
 
-		acceptingPaymentState.OnExit(func(state fsm.State, fsmData interface{}) {
-			fmt.Fprintf(GinkgoWriter, "onExit")
+		acceptingPaymentState.OnExit(func(state fsm.State, fsmData interface{}, dispatcher fsm.Dispatcher) {
+			fmt.Fprintf(GinkgoWriter, "onExit\n")
 			meterData := (fsmData).(*paymentMeter)
 			meterData.currentPayment.coinValue = 0
 			meterData.currentPayment.numCoins = 0
@@ -104,6 +104,7 @@ var _ = Describe("Tests for data in states", func() {
 			paymentMeterSM.Start()
 
 			for customer := 0; customer < customers; customer++ {
+				fmt.Fprintf(GinkgoWriter, "serving customer %d\n", customer)
 				Expect(paymentMeterSM.CurrentState().Name()).To(Equal("idle"))
 				for coin := 0; coin < coinsPerCustomer; coin++ {
 					fmt.Fprintf(GinkgoWriter, "inserting coin %d\n", coin)

@@ -11,8 +11,8 @@ func NewState(name string) StateBuilder {
 	return &fsmStateImpl{
 		name:        name,
 		transitions: make([]Transition, 0),
-		onEntry:     func(state State, fsmData interface{}) {},
-		onExit:      func(state State, fsmData interface{}) {},
+		onEntry:     func(state State, fsmData interface{}, dispatcher Dispatcher) {},
+		onExit:      func(state State, fsmData interface{}, dispatcher Dispatcher) {},
 	}
 }
 
@@ -24,15 +24,15 @@ func (s *fsmStateImpl) OnEntry(f Action) State {
 	s.onEntry = f
 	return s
 }
-func (s *fsmStateImpl) doEntry(fsmData interface{}) {
-	s.onEntry(s, fsmData)
+func (s *fsmStateImpl) doEntry(fsm FSM) {
+	s.onEntry(s, fsm.GetData(), fsm.GetDispatcher())
 }
 func (s *fsmStateImpl) OnExit(f Action) State {
 	s.onExit = f
 	return s
 }
-func (s *fsmStateImpl) doExit(fsmData interface{}) {
-	s.onExit(s, fsmData)
+func (s *fsmStateImpl) doExit(fsm FSM) {
+	s.onExit(s, fsm.GetData(), fsm.GetDispatcher())
 }
 
 func (s *fsmStateImpl) AddTransition(target State) TransitionBuilder {

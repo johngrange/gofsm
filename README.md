@@ -8,6 +8,7 @@ Goals:
 - To provide useful, simple to use FSM for golang
 - To follow UML state diagram semantics as far as reasonable for the features implemented.
 - Provide concurrent and non-concurrent implementations.
+
 Non Goals:
 - Full implementation of UML state machine specification
 

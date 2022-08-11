@@ -1,11 +1,8 @@
 package fsm
 
 import (
-	"fmt"
 	"sync"
 	"time"
-
-	"github.com/onsi/ginkgo/v2"
 )
 
 type threadedFsmImpl struct {
@@ -13,17 +10,20 @@ type threadedFsmImpl struct {
 	evalMX     sync.Mutex
 	stop       chan struct{}
 	eventQueue chan Event
+	mx         sync.Mutex
 }
 
 const eventQueueLength = 50
 const dataPollPeriod = time.Millisecond * 10
 
 func NewThreadedFSM(initialState State, data interface{}) FSMBuilder {
-	return &threadedFsmImpl{
+	fsm := &threadedFsmImpl{
 		base:       NewImmediateFSM(initialState, data).(*immediateFSMImpl),
 		evalMX:     sync.Mutex{},
 		eventQueue: make(chan Event, eventQueueLength),
 	}
+	fsm.base.dispatcher = fsm
+	return fsm
 }
 
 func (f *threadedFsmImpl) Start() {
@@ -41,13 +41,12 @@ func (f *threadedFsmImpl) runEventQueue() {
 	for {
 		select {
 		case <-f.stop:
-			fmt.Fprintln(ginkgo.GinkgoWriter, "stopping")
 			return
 		case ev := <-f.eventQueue:
-			fmt.Fprintf(ginkgo.GinkgoWriter, "process event %+v\n", ev)
+			f.mx.Lock()
 			f.base.processEvent(ev)
+			f.mx.Unlock()
 		case <-time.After(dataPollPeriod):
-			fmt.Fprintf(ginkgo.GinkgoWriter, "run to wait\n")
 			f.base.runToWaitCondition()
 		}
 	}
@@ -76,4 +75,8 @@ func (f *threadedFsmImpl) Visit(v Visitor) {
 
 func (f *threadedFsmImpl) GetData() interface{} {
 	return f.base.fsmData
+}
+
+func (f *threadedFsmImpl) GetDispatcher() Dispatcher {
+	return f
 }

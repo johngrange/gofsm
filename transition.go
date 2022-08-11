@@ -16,7 +16,7 @@ func newTransition(source, target State) TransitionBuilder {
 		guard: func(fsmData, eventData interface{}) bool {
 			return true
 		},
-		action: func(ev Event, fsmData interface{}) {},
+		action: func(ev Event, fsmData interface{}, dispatcher Dispatcher) {},
 	}
 }
 
@@ -51,8 +51,8 @@ func (t *transitionImpl) GetEventName() string {
 	return t.triggerEvent
 }
 
-func (t *transitionImpl) doAction(ev Event, fsmData interface{}) {
-	t.action(ev, fsmData)
+func (t *transitionImpl) doAction(ev Event, fsm FSM) {
+	t.action(ev, fsm.GetData(), fsm.GetDispatcher())
 }
 
 func (t *transitionImpl) IsLocal() bool {

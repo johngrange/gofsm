@@ -1,23 +1,35 @@
 package fsm
 
+import (
+	"fmt"
+
+	"github.com/onsi/ginkgo/v2"
+)
+
 type immediateFSMImpl struct {
-	running      bool
-	states       []State
-	currentState State
-	fsmData      interface{}
-	tracers      []Tracer
-	doTrace      bool
+	running              bool
+	states               []State
+	currentState         State
+	fsmData              interface{}
+	tracers              []Tracer
+	doTrace              bool
+	eventProcesingActive bool
+	eventQueue           chan Event
+	dispatcher           Dispatcher
 }
 
 func NewImmediateFSM(initialState State, data interface{}) ImmediateFSMBuilder {
 
-	return &immediateFSMImpl{
+	fsm := &immediateFSMImpl{
 		running:      false,
 		states:       []State{initialState},
 		currentState: initialState,
 		fsmData:      data,
 		tracers:      make([]Tracer, 0),
+		eventQueue:   make(chan Event, eventQueueLength),
 	}
+	fsm.dispatcher = fsm
+	return fsm
 }
 
 func (f *immediateFSMImpl) AddTracer(t Tracer) ImmediateFSMBuilder {
@@ -38,7 +50,7 @@ func (f *immediateFSMImpl) AddState(s State) ImmediateFSMBuilder {
 func (f *immediateFSMImpl) Start() {
 	f.running = true
 	f.traceOnEntry(f.currentState, f.fsmData)
-	f.currentState.doEntry(f.fsmData)
+	f.currentState.doEntry(f)
 	f.runToWaitCondition()
 }
 func (f *immediateFSMImpl) Stop() {
@@ -78,14 +90,14 @@ func (f *immediateFSMImpl) doTransition(ev Event, transition Transition) {
 	oldState := f.currentState
 	nextState := transition.Target()
 
-	transition.doAction(ev, f.fsmData)
+	transition.doAction(ev, f)
 	f.traceTransition(ev, f.currentState, transition.Target())
 
 	if !transition.IsLocal() {
-		oldState.doExit(f.fsmData)
+		oldState.doExit(f)
 		f.traceOnExit(oldState, f.fsmData)
 		f.currentState = nextState
-		nextState.doEntry(f.fsmData)
+		nextState.doEntry(f)
 		f.traceOnEntry(nextState, f.fsmData)
 	}
 }
@@ -94,10 +106,27 @@ func (f *immediateFSMImpl) CurrentState() State {
 }
 func (f *immediateFSMImpl) Dispatch(ev Event) {
 	if f.running {
+		f.eventQueue <- ev
+		f.processImmediateEventQueue()
+	}
+}
+func (f *immediateFSMImpl) processImmediateEventQueue() {
+	// Don't allow nested calls to this method.  If more events get dispatched
+	// as a result of this processing, they will be added to the event queue and we
+	// will deal with them at this top level.
+	if f.eventProcesingActive {
+		return
+	}
+	f.eventProcesingActive = true
+	defer func() {
+		f.eventProcesingActive = false
+	}()
+	for len(f.eventQueue) > 0 {
+		fmt.Fprintf(ginkgo.GinkgoWriter, "evq %d\n", len(f.eventQueue))
+		ev := <-f.eventQueue
 		f.processEvent(ev)
 	}
 }
-
 func (f *immediateFSMImpl) traceOnEntry(state State, fsmData interface{}) {
 	for _, t := range f.tracers {
 		t.OnEntry(state, fsmData)
@@ -109,13 +138,21 @@ func (f *immediateFSMImpl) traceOnExit(state State, fsmData interface{}) {
 	}
 }
 
+func (f *immediateFSMImpl) traceRejectedEvent(ev Event, state State, fsmData interface{}) {
+	for _, t := range f.tracers {
+		t.OnRejectedEvent(ev, state, fsmData)
+	}
+}
+
 func (f *immediateFSMImpl) processEvent(ev Event) {
 	for _, transition := range f.currentState.GetTransitions() {
 		if transition.shouldTransitionEv(ev, f.fsmData) {
 			f.doTransition(ev, transition)
 			f.runToWaitCondition()
+			return
 		}
 	}
+	f.traceRejectedEvent(ev, f.currentState, f.fsmData)
 }
 
 func (f *immediateFSMImpl) Visit(v Visitor) {
@@ -129,4 +166,8 @@ func (f *immediateFSMImpl) Visit(v Visitor) {
 
 func (f *immediateFSMImpl) GetData() interface{} {
 	return f.fsmData
+}
+
+func (f *immediateFSMImpl) GetDispatcher() Dispatcher {
+	return f.dispatcher
 }

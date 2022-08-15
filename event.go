@@ -1,15 +1,21 @@
 package fsm
 
 type eventImpl struct {
-	name string
-	data interface{}
+	name   string
+	data   interface{}
+	labels []string
 }
 
-func NewEvent(name string, data interface{}) Event {
-	return &eventImpl{
-		name: name,
-		data: data,
+func NewEvent(name string, data interface{}, labels ...string) Event {
+	ev := &eventImpl{
+		name:   name,
+		data:   data,
+		labels: []string{},
 	}
+	for _, l := range labels {
+		ev.labels = append(ev.labels, l)
+	}
+	return ev
 }
 
 func (ev *eventImpl) Name() string {
@@ -18,4 +24,8 @@ func (ev *eventImpl) Name() string {
 
 func (ev *eventImpl) Data() interface{} {
 	return ev.data
+}
+
+func (ev *eventImpl) Labels() []string {
+	return ev.labels
 }

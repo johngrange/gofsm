@@ -45,18 +45,22 @@ type ImmediateFSM interface {
 type Event interface {
 	Name() string
 	Data() interface{}
+	Labels() []string
 }
 
 type StateBuilder interface {
-	AddTransition(target State) TransitionBuilder
-	OnEntry(Action) State
-	OnExit(Action) State
+	AddTransition(target State, labels ...string) TransitionBuilder
+	OnEntry(action Action, labels ...string) State
+	OnExit(action Action, labels ...string) State
 	State
 }
 
 type State interface {
 	Name() string
-	GetTransitions() []Transition
+	Transitions() []Transition
+	StateLabels() []string
+	EntryLabels() []string
+	ExitLabels() []string
 	doExit(fsm FSM)
 	doEntry(fsm FSM)
 }
@@ -73,9 +77,9 @@ type TransitionEffect func(ev Event, fsmData interface{}, dispatcher Dispatcher)
 type TransitionGuard func(fsmData, eventData interface{}) bool
 
 type TransitionBuilder interface {
-	SetTrigger(eventName string) TransitionBuilder
-	SetGuard(TransitionGuard) TransitionBuilder
-	SetEffect(TransitionEffect) TransitionBuilder
+	SetTrigger(eventName string, labels ...string) TransitionBuilder
+	SetGuard(guard TransitionGuard, labels ...string) TransitionBuilder
+	SetEffect(efffect TransitionEffect, labels ...string) TransitionBuilder
 	Transition
 }
 
@@ -83,7 +87,10 @@ type Transition interface {
 	Source() State
 	Target() State
 	IsLocal() bool
-	GetEventName() string
+	TriggerLabels() []string
+	GuardLabels() []string
+	EffectLabels() []string
+	EventName() string
 	shouldTransitionEv(ev Event, fsmData interface{}) bool // If this transition accepts supplied event and guard is met, then return true
 	shouldTransitionNoEv(fsmData interface{}) bool         // If this transition guard is met, with no need for event, then return true.  will always return false if trigger event set.
 	doAction(ev Event, fsm FSM)

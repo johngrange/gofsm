@@ -66,7 +66,7 @@ func (f *immediateFSMImpl) runToWaitCondition() {
 	// keep evaluating no event transitions until we can't exit the current state
 	for {
 		transitioned := false
-		for _, transition := range f.currentState.GetTransitions() {
+		for _, transition := range f.currentState.Transitions() {
 			if transition.shouldTransitionNoEv(f.fsmData) {
 				f.doTransition(nil, transition)
 				transitioned = true
@@ -145,7 +145,7 @@ func (f *immediateFSMImpl) traceRejectedEvent(ev Event, state State, fsmData int
 }
 
 func (f *immediateFSMImpl) processEvent(ev Event) {
-	for _, transition := range f.currentState.GetTransitions() {
+	for _, transition := range f.currentState.Transitions() {
 		if transition.shouldTransitionEv(ev, f.fsmData) {
 			f.doTransition(ev, transition)
 			f.runToWaitCondition()
@@ -158,7 +158,7 @@ func (f *immediateFSMImpl) processEvent(ev Event) {
 func (f *immediateFSMImpl) Visit(v Visitor) {
 	for _, state := range f.states {
 		v.VisitState(state)
-		for _, transition := range state.GetTransitions() {
+		for _, transition := range state.Transitions() {
 			v.VisitTransition(transition)
 		}
 	}

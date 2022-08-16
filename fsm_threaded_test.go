@@ -26,7 +26,8 @@ var _ = Describe("Threaded FSM", func() {
 			return stateMachine.CurrentState().Name()
 		}
 		data = &fsmData{}
-		init = fsm.NewState("initial")
+		stateMachine = fsm.NewThreadedFSM(data)
+		init = stateMachine.GetInitialState()
 
 		startingState = fsm.NewState("starting")
 
@@ -38,7 +39,6 @@ var _ = Describe("Threaded FSM", func() {
 
 		offState.AddTransition(onState).SetTrigger("TurnOn")
 		onState.AddTransition(offState).SetTrigger("TurnOff")
-		stateMachine = fsm.NewThreadedFSM(init, data)
 		fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 
 		stateMachine.

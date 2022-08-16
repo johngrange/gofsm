@@ -22,7 +22,8 @@ var _ = Describe("test tracers", func() {
 
 	BeforeEach(func() {
 		data = &fsmData{}
-		init = fsm.NewState("initial")
+		stateMachine = fsm.NewImmediateFSM(data)
+		init = stateMachine.GetInitialState()
 
 		startingState = fsm.NewState("starting")
 
@@ -34,7 +35,7 @@ var _ = Describe("test tracers", func() {
 
 		offState.AddTransition(onState).SetTrigger("TurnOn")
 		onState.AddTransition(offState).SetTrigger("TurnOff")
-		stateMachine = fsm.NewImmediateFSM(init, data).
+		stateMachine.
 			AddState(startingState).
 			AddState(onState).
 			AddState(offState)

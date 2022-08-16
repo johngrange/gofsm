@@ -32,7 +32,10 @@ var _ = Describe("Tests for data in states", func() {
 		paymentMeterData := &paymentMeter{
 			ticketCost: 300,
 		}
-		init = fsm.NewState("initial")
+
+		paymentMeterSM = fsm.NewImmediateFSM(paymentMeterData)
+
+		init = paymentMeterSM.GetInitialState()
 
 		idleState = fsm.NewState("idle")
 
@@ -88,7 +91,6 @@ var _ = Describe("Tests for data in states", func() {
 
 		printingTicketState.AddTransition(idleState)
 
-		paymentMeterSM = fsm.NewImmediateFSM(init, paymentMeterData)
 		paymentMeterSM.
 			AddState(idleState).
 			AddState(acceptingPaymentState).

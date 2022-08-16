@@ -32,18 +32,19 @@ type plantUMLVisitor struct {
 }
 
 func (p *plantUMLVisitor) VisitState(state State) {
-	if !p.seenFirstState {
-		fmt.Fprintf(p.w, "[*] --> %s\n", state.Name())
-		p.seenFirstState = true
+	stateName := state.Name()
+	if stateName == InitialStateName {
+		stateName = "[*]"
 	}
+
 	for _, l := range state.StateLabels() {
-		fmt.Fprintf(p.w, "%s : %s\n", state.Name(), l)
+		fmt.Fprintf(p.w, "%s : %s\n", stateName, l)
 	}
 	for _, l := range state.EntryLabels() {
-		fmt.Fprintf(p.w, "%s : entry/%s\n", state.Name(), l)
+		fmt.Fprintf(p.w, "%s : entry/%s\n", stateName, l)
 	}
 	for _, l := range state.ExitLabels() {
-		fmt.Fprintf(p.w, "%s : exit/%s\n", state.Name(), l)
+		fmt.Fprintf(p.w, "%s : exit/%s\n", stateName, l)
 	}
 }
 func (p *plantUMLVisitor) VisitTransition(t Transition) {
@@ -70,7 +71,16 @@ func (p *plantUMLVisitor) VisitTransition(t Transition) {
 		}
 
 	}
-	_, err := fmt.Fprintf(p.w, "%s --> %s%s%s%s\n", t.Source().Name(), t.Target().Name(), evName, guard, effect)
+
+	sourceName := t.Source().Name()
+	if sourceName == InitialStateName {
+		sourceName = "[*]"
+	}
+	targetName := t.Target().Name()
+	if targetName == FinalStateName {
+		targetName = "[*]"
+	}
+	_, err := fmt.Fprintf(p.w, "%s --> %s%s%s%s\n", sourceName, targetName, evName, guard, effect)
 	if err != nil {
 		p.errs = append(p.errs, err)
 	}

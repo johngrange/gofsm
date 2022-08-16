@@ -4,6 +4,11 @@ import (
 	"time"
 )
 
+const (
+	InitialStateName = "initial"
+	FinalStateName   = "FinalState"
+)
+
 type FSMTraceEntry struct {
 	TransitionTime           time.Time
 	EventName                string
@@ -13,12 +18,18 @@ type FSMTraceEntry struct {
 type FSMBuilder interface {
 	AddState(State) FSMBuilder
 	AddTracer(Tracer) FSMBuilder
+	AddFinalState() StateBuilder
+	GetInitialState() StateBuilder
+	GetFinalState() StateBuilder
 	FSM
 }
 
 type ImmediateFSMBuilder interface {
 	AddState(State) ImmediateFSMBuilder
 	AddTracer(Tracer) ImmediateFSMBuilder
+	AddFinalState() StateBuilder
+	GetInitialState() StateBuilder
+	GetFinalState() StateBuilder
 	ImmediateFSM
 }
 

@@ -8,6 +8,8 @@ import (
 
 type immediateFSMImpl struct {
 	running              bool
+	initialState         StateBuilder // always populated
+	finalState           StateBuilder // may be nil
 	states               []State
 	currentState         State
 	fsmData              interface{}
@@ -18,9 +20,14 @@ type immediateFSMImpl struct {
 	dispatcher           Dispatcher
 }
 
-func NewImmediateFSM(initialState State, data interface{}) ImmediateFSMBuilder {
+func NewImmediateFSM(data interface{}) ImmediateFSMBuilder {
+	// Creates a new immediate FSM with a standard initial state
+	return newImmediateFSM(NewState(InitialStateName), data)
+}
 
+func newImmediateFSM(initialState StateBuilder, data interface{}) ImmediateFSMBuilder {
 	fsm := &immediateFSMImpl{
+		initialState: initialState,
 		running:      false,
 		states:       []State{initialState},
 		currentState: initialState,
@@ -30,6 +37,19 @@ func NewImmediateFSM(initialState State, data interface{}) ImmediateFSMBuilder {
 	}
 	fsm.dispatcher = fsm
 	return fsm
+}
+
+func (f *immediateFSMImpl) GetInitialState() StateBuilder {
+	return f.initialState
+}
+
+func (f *immediateFSMImpl) GetFinalState() StateBuilder {
+	return f.finalState
+}
+
+func (f *immediateFSMImpl) AddFinalState() StateBuilder {
+	f.finalState = NewState(FinalStateName)
+	return f.finalState
 }
 
 func (f *immediateFSMImpl) AddTracer(t Tracer) ImmediateFSMBuilder {

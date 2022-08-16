@@ -29,7 +29,8 @@ var _ = Describe("Plant UML Rendering", func() {
 	When("rendering uml", func() {
 		It("should get the output right!", func() {
 			data = &fsmData{}
-			init = fsm.NewState("initial")
+			stateMachine = fsm.NewThreadedFSM(data)
+			init = stateMachine.GetInitialState()
 
 			startingState = fsm.NewState("starting")
 			startingState.OnEntry(func(state fsm.State, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "initialise system")
@@ -42,8 +43,10 @@ var _ = Describe("Plant UML Rendering", func() {
 
 			offState.AddTransition(onState).SetTrigger("TurnOn").SetGuard(func(fsmData, eventData interface{}) bool { return true }, "power==active")
 			onState.AddTransition(offState).SetTrigger("TurnOff").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "perform effect")
+
+			onState.AddTransition(stateMachine.AddFinalState()).SetTrigger("FatalError").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "panic!")
+
 			onState.OnExit(func(state fsm.State, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "turn out lights")
-			stateMachine = fsm.NewThreadedFSM(init, data)
 			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 
 			stateMachine.
@@ -60,13 +63,13 @@ var _ = Describe("Plant UML Rendering", func() {
 
 			expectedUML :=
 				`@startuml
-[*] --> initial
-initial --> starting
+[*] --> starting
 starting : entry/initialise system
 starting --> off
 on : the on state
 on : exit/turn out lights
 on --> off : TurnOff/perform effect
+on --> [*] : FatalError/panic!
 off --> on : TurnOn [power==active] 
 @enduml
 `

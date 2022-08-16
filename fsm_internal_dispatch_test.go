@@ -24,16 +24,18 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 
 			on.AddTransition(errstate).SetTrigger("error")
 
-			sm := fsm.NewImmediateFSM(off, nil)
+			sm := fsm.NewImmediateFSM(nil)
+			sm.GetInitialState().AddTransition(off)
 			sm.AddTracer(ctr)
 			sm.Start()
 			Expect(sm.CurrentState().Name()).To(Equal("off"))
 			sm.Dispatch(fsm.NewEvent("on", nil))
 			Expect(sm.CurrentState().Name()).To(Equal("error"))
 			Expect(ctr.StateCounts).To(Equal(map[string]uint64{
-				"off":   1,
-				"on":    1,
-				"error": 1,
+				"off":     1,
+				"on":      1,
+				"error":   1,
+				"initial": 1,
 			}))
 
 		})
@@ -57,7 +59,8 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			})
 
 			errstate.AddTransition(fixing).SetTrigger("fixit")
-			sm := fsm.NewImmediateFSM(off, nil)
+			sm := fsm.NewImmediateFSM(nil)
+			sm.GetInitialState().AddTransition(off)
 			sm.AddTracer(ctr)
 			sm.Start()
 			Expect(sm.CurrentState().Name()).To(Equal("off"))
@@ -66,10 +69,11 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			sm.Dispatch(fsm.NewEvent("off", nil))
 			Expect(sm.CurrentState().Name()).To(Equal("fixing"))
 			Expect(ctr.StateCounts).To(Equal(map[string]uint64{
-				"off":    2,
-				"on":     1,
-				"error":  1,
-				"fixing": 1,
+				"off":     2,
+				"on":      1,
+				"error":   1,
+				"fixing":  1,
+				"initial": 1,
 			}))
 		})
 	})
@@ -88,7 +92,8 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 
 			on.AddTransition(errstate).SetTrigger("error")
 
-			sm := fsm.NewThreadedFSM(off, nil)
+			sm := fsm.NewThreadedFSM(nil)
+			sm.GetInitialState().AddTransition(off)
 			sm.AddTracer(ctr)
 			sm.Start()
 			defer sm.Stop()
@@ -96,9 +101,10 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			sm.Dispatch(fsm.NewEvent("on", nil))
 			Eventually(func() string { return sm.CurrentState().Name() }).Should(Equal("error"))
 			Expect(ctr.StateCounts).To(Equal(map[string]uint64{
-				"off":   1,
-				"on":    1,
-				"error": 1,
+				"off":     1,
+				"on":      1,
+				"error":   1,
+				"initial": 1,
 			}))
 			Expect(ctr.RejectedEventCounts).To(Equal(map[string]uint64{}))
 
@@ -124,7 +130,8 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			})
 
 			errstate.AddTransition(fixing).SetTrigger("fixit")
-			sm := fsm.NewThreadedFSM(off, nil)
+			sm := fsm.NewThreadedFSM(nil)
+			sm.GetInitialState().AddTransition(off)
 			sm.AddTracer(ctr)
 			sm.AddTracer(lg)
 			defer func() {
@@ -140,10 +147,11 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			sm.Dispatch(fsm.NewEvent("off", nil))
 			Eventually(func() string { return sm.CurrentState().Name() }).Should(Equal("fixing"))
 			Expect(ctr.StateCounts).To(Equal(map[string]uint64{
-				"off":    2,
-				"on":     1,
-				"error":  1,
-				"fixing": 1,
+				"off":     2,
+				"on":      1,
+				"error":   1,
+				"fixing":  1,
+				"initial": 1,
 			}))
 			Expect(ctr.RejectedEventCounts).To(Equal(map[string]uint64{}))
 		})

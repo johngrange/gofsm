@@ -15,31 +15,33 @@ var _ = Describe("test tracers", func() {
 	}
 
 	var (
-		stateMachine                           fsm.ImmediateFSMBuilder
+		stateMachine                           fsm.ImmediateFSM
 		data                                   *fsmData
 		onState, offState, startingState, init fsm.StateBuilder
+		err                                    error
 	)
 
 	BeforeEach(func() {
 		data = &fsmData{}
-		stateMachine = fsm.NewImmediateFSM(data)
-		init = stateMachine.GetInitialState()
+		smb := fsm.NewFSMBuilder().SetData(data)
+		init = smb.GetInitialState()
 
-		startingState = fsm.NewState("starting")
+		startingState = fsm.NewStateBuilder("starting")
 
-		onState = fsm.NewState("on")
-		offState = fsm.NewState("off")
+		onState = fsm.NewStateBuilder("on")
+		offState = fsm.NewStateBuilder("off")
 
 		init.AddTransition(startingState)
 		startingState.AddTransition(offState)
 
 		offState.AddTransition(onState).SetTrigger("TurnOn")
 		onState.AddTransition(offState).SetTrigger("TurnOff")
-		stateMachine.
+		smb.
 			AddState(startingState).
 			AddState(onState).
 			AddState(offState)
-
+		stateMachine, err = smb.BuildImmediateFSM()
+		Expect(err).NotTo(HaveOccurred())
 	})
 	When("using a count tracer", func() {
 		It("should count states correctly", func() {

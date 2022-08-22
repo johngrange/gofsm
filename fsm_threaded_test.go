@@ -15,10 +15,12 @@ var _ = Describe("Threaded FSM", func() {
 	}
 
 	var (
-		stateMachine                           fsm.FSMBuilder
+		stateMachine                           fsm.FSM
 		data                                   *fsmData
 		onState, offState, startingState, init fsm.StateBuilder
 		currStateName                          func() string
+		err                                    error
+		stateMachineBuilder                    fsm.FSMBuilder
 	)
 
 	BeforeEach(func() {
@@ -26,13 +28,14 @@ var _ = Describe("Threaded FSM", func() {
 			return stateMachine.CurrentState().Name()
 		}
 		data = &fsmData{}
-		stateMachine = fsm.NewThreadedFSM(data)
-		init = stateMachine.GetInitialState()
+		stateMachineBuilder = fsm.NewFSMBuilder()
+		stateMachineBuilder.SetData(data)
+		init = stateMachineBuilder.GetInitialState()
 
-		startingState = fsm.NewState("starting")
+		startingState = fsm.NewStateBuilder("starting")
 
-		onState = fsm.NewState("on")
-		offState = fsm.NewState("off")
+		onState = fsm.NewStateBuilder("on")
+		offState = fsm.NewStateBuilder("off")
 
 		init.AddTransition(startingState)
 		startingState.AddTransition(offState)
@@ -41,19 +44,24 @@ var _ = Describe("Threaded FSM", func() {
 		onState.AddTransition(offState).SetTrigger("TurnOff")
 		fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 
-		stateMachine.
+		stateMachineBuilder.
 			AddState(startingState).
 			AddState(onState).
 			AddState(offState)
 
-		fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 	})
 	When("starting an fsm", func() {
 		It("should be in the initial state before start is called", func() {
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
+			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 			Expect(stateMachine.CurrentState()).NotTo(BeNil())
 			Expect(stateMachine.CurrentState().Name()).To(Equal("initial"))
 		})
 		It("should transition through unguarded, non event transitions when start is called", func() {
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
+			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 			stateMachine.Start()
 			Expect(stateMachine.CurrentState()).NotTo(BeNil())
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
@@ -61,6 +69,9 @@ var _ = Describe("Threaded FSM", func() {
 	})
 	When("dispatching an event", func() {
 		It("should not transition if a known event is presented in the wrong state", func() {
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
+			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 			stateMachine.Start()
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 
@@ -68,6 +79,9 @@ var _ = Describe("Threaded FSM", func() {
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 		})
 		It("should not transition if an unknown event is presented in the wrong state", func() {
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
+			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 			stateMachine.Start()
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 
@@ -75,6 +89,9 @@ var _ = Describe("Threaded FSM", func() {
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 		})
 		It("should not transition if an event is presented in the right state", func() {
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
+			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 			stateMachine.Start()
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 
@@ -86,9 +103,12 @@ var _ = Describe("Threaded FSM", func() {
 	})
 	When("not started", func() {
 		It("should not transition if data changes", func() {
+			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
 				return true
 			})
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
 			Expect(stateMachine.CurrentState()).NotTo(BeNil())
 			Expect(stateMachine.CurrentState().Name()).To(Equal("initial"))
 		})
@@ -96,17 +116,23 @@ var _ = Describe("Threaded FSM", func() {
 	})
 	When("started", func() {
 		It("should not transition if guard evaluates to false", func() {
+			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
 				return false
 			})
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 			Consistently(currStateName).Should(Equal("off"))
 
 		})
-		It("should not transition if guard evaluates to true", func() {
+		It("should transition if guard evaluates to true", func() {
+			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
 				return true
 			})
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 			Eventually(currStateName).Should(Equal("on"))
 
@@ -118,6 +144,8 @@ var _ = Describe("Threaded FSM", func() {
 				fmt.Fprintf(GinkgoWriter, "%+v", data)
 				return d.followGuardOffToOn
 			})
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
 			data.followGuardOffToOn = false
 			stateMachine.Start()
 

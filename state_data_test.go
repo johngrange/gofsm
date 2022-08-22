@@ -21,8 +21,9 @@ var _ = Describe("Tests for data in states", func() {
 	}
 
 	var (
-		paymentMeterSM                                              fsm.ImmediateFSMBuilder
+		paymentMeterSM                                              fsm.ImmediateFSM
 		idleState, acceptingPaymentState, printingTicketState, init fsm.StateBuilder
+		err                                                         error
 	)
 
 	BeforeEach(func() {
@@ -33,15 +34,15 @@ var _ = Describe("Tests for data in states", func() {
 			ticketCost: 300,
 		}
 
-		paymentMeterSM = fsm.NewImmediateFSM(paymentMeterData)
+		smb := fsm.NewFSMBuilder().SetData(paymentMeterData)
 
-		init = paymentMeterSM.GetInitialState()
+		init = smb.GetInitialState()
 
-		idleState = fsm.NewState("idle")
+		idleState = fsm.NewStateBuilder("idle")
 
-		acceptingPaymentState = fsm.NewState("acceptingPayment")
+		acceptingPaymentState = fsm.NewStateBuilder("acceptingPayment")
 
-		printingTicketState = fsm.NewState("printingTicket")
+		printingTicketState = fsm.NewStateBuilder("printingTicket")
 
 		init.AddTransition(idleState)
 
@@ -91,10 +92,12 @@ var _ = Describe("Tests for data in states", func() {
 
 		printingTicketState.AddTransition(idleState)
 
-		paymentMeterSM.
+		smb.
 			AddState(idleState).
 			AddState(acceptingPaymentState).
 			AddState(printingTicketState)
+		paymentMeterSM, err = smb.BuildImmediateFSM()
+		Expect(err).NotTo(HaveOccurred())
 
 	})
 	When("putting several coins in to equal ticket value", func() {

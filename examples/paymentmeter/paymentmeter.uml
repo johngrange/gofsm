@@ -1,0 +1,7 @@
+@startuml
+[*] --> idle
+idle --> acceptingPayment : evInsertCoin/coinValue += ev.coinAmount numCoins++
+acceptingPayment --> acceptingPayment : evInsertCoin/coinValue += ev.coinAmount numCoins++
+acceptingPayment --> printingTicket : evPrintTicket [currentPayment.coinValue >= ticketCost] /paymentsCollected += currentPayment.coinValue ticketsIssued++
+printingTicket --> idle
+@enduml

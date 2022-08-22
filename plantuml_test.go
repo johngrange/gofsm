@@ -3,7 +3,6 @@ package fsm_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -16,8 +15,6 @@ const testOutputDir = "./test-output"
 
 var _ = Describe("Plant UML Rendering", func() {
 	type fsmData struct {
-		errorDuringOn      bool
-		followGuardOffToOn bool
 	}
 
 	var (
@@ -76,10 +73,11 @@ on --> [*] : FatalError/panic!
 off --> on : TurnOn [power==active] 
 @enduml
 `
-			fmt.Fprintf(GinkgoWriter, "%s\n", string(buf.Bytes()))
-			Expect(string(buf.Bytes())).To(Equal(expectedUML))
-			os.MkdirAll(testOutputDir, 0755)
-			err = ioutil.WriteFile(path.Join(testOutputDir, "testone.uml"), buf.Bytes(), 0644)
+			fmt.Fprintf(GinkgoWriter, "%s\n", buf.String())
+			Expect(buf.String()).To(Equal(expectedUML))
+			err = os.MkdirAll(testOutputDir, 0755)
+			Expect(err).NotTo(HaveOccurred())
+			err = os.WriteFile(path.Join(testOutputDir, "testone.uml"), buf.Bytes(), 0600)
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

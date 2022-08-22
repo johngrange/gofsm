@@ -10,7 +10,6 @@ import (
 
 var _ = Describe("Threaded FSM", func() {
 	type fsmData struct {
-		errorDuringOn      bool
 		followGuardOffToOn bool
 	}
 
@@ -20,7 +19,7 @@ var _ = Describe("Threaded FSM", func() {
 		onState, offState, startingState, init fsm.StateBuilder
 		currStateName                          func() string
 		err                                    error
-		stateMachineBuilder                    fsm.FSMBuilder
+		stateMachineBuilder                    fsm.StateMachineBuilder
 	)
 
 	BeforeEach(func() {

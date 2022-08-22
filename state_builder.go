@@ -28,23 +28,17 @@ func NewStateBuilder(name string, labels ...string) StateBuilder {
 		exitLabels:  []string{},
 	}
 
-	for _, l := range labels {
-		sb.stateLabels = append(sb.stateLabels, l)
-	}
+	sb.stateLabels = append(sb.stateLabels, labels...)
 	return sb
 }
 
 func (sb *fsmStateBuilder) OnEntry(f Action, labels ...string) StateBuilder {
-	for _, l := range labels {
-		sb.entryLabels = append(sb.entryLabels, l)
-	}
+	sb.entryLabels = append(sb.entryLabels, labels...)
 	sb.onEntry = f
 	return sb
 }
 func (sb *fsmStateBuilder) OnExit(f Action, labels ...string) StateBuilder {
-	for _, l := range labels {
-		sb.exitLabels = append(sb.exitLabels, l)
-	}
+	sb.exitLabels = append(sb.exitLabels, labels...)
 	sb.onExit = f
 	return sb
 }
@@ -90,6 +84,9 @@ func (sb *fsmStateBuilder) buildTransitions() error {
 			return err
 		}
 		transition, err := tb.build(source, target)
+		if err != nil {
+			return err
+		}
 		sb.finalisedState.transitions = append(sb.finalisedState.transitions, transition)
 	}
 	fmt.Fprintf(ginkgo.GinkgoWriter, "state %s has %d transitions after building\n", sb.finalisedState.name, len(sb.finalisedState.transitions))

@@ -12,9 +12,7 @@ func NewEvent(name string, data interface{}, labels ...string) Event {
 		data:   data,
 		labels: []string{},
 	}
-	for _, l := range labels {
-		ev.labels = append(ev.labels, l)
-	}
+	ev.labels = append(ev.labels, labels...)
 	return ev
 }
 

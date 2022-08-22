@@ -12,26 +12,6 @@ type transitionImpl struct {
 	effectLabels  []string
 }
 
-func newTransition(source, target State, labels ...string) *transitionImpl {
-
-	t := &transitionImpl{
-		source: source,
-		target: target,
-		guard: func(fsmData, eventData interface{}) bool {
-			return true
-		},
-		action:        func(ev Event, fsmData interface{}, dispatcher Dispatcher) {},
-		labels:        []string{},
-		triggerLabels: []string{},
-		guardLabels:   []string{},
-		effectLabels:  []string{},
-	}
-	for _, l := range labels {
-		t.labels = append(labels, l)
-	}
-	return t
-}
-
 func (t *transitionImpl) Source() State {
 	return t.source
 }

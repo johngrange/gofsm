@@ -9,22 +9,22 @@ const (
 	FinalStateName   = "FinalState"
 )
 
-type FSMTraceEntry struct {
+type TraceEntry struct {
 	TransitionTime           time.Time
 	EventName                string
 	SourceState, TargetState string
 }
 
-type FSMBuilder interface {
-	AddState(StateBuilder) FSMBuilder
+type StateMachineBuilder interface {
+	AddState(StateBuilder) StateMachineBuilder
 	NewState(name string, labels ...string) StateBuilder
-	AddTracer(Tracer) FSMBuilder
+	AddTracer(Tracer) StateMachineBuilder
 	AddFinalState() StateBuilder
 	GetInitialState() StateBuilder
 	GetFinalState() StateBuilder
 	BuildImmediateFSM() (ImmediateFSM, error)
 	BuildThreadedFSM() (FSM, error)
-	SetData(data interface{}) FSMBuilder
+	SetData(data interface{}) StateMachineBuilder
 }
 
 type Dispatcher interface {

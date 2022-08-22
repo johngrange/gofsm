@@ -26,31 +26,23 @@ func newTransitionBuilder(sourceStateBuilder, targetStateBuilder StateBuilder, l
 		guardLabels:   []string{},
 		effectLabels:  []string{},
 	}
-	for _, l := range labels {
-		tb.labels = append(labels, l)
-	}
+	tb.labels = append(tb.labels, labels...)
 	return tb
 }
 
 func (tb *transitionBuilderImpl) SetTrigger(eventName string, labels ...string) TransitionBuilder {
-	for _, l := range labels {
-		tb.triggerLabels = append(tb.triggerLabels, l)
-	}
+	tb.triggerLabels = append(tb.triggerLabels, labels...)
 	tb.triggerEvent = eventName
 
 	return tb
 }
 func (tb *transitionBuilderImpl) SetGuard(guard TransitionGuard, labels ...string) TransitionBuilder {
-	for _, l := range labels {
-		tb.guardLabels = append(tb.guardLabels, l)
-	}
+	tb.guardLabels = append(tb.guardLabels, labels...)
 	tb.guard = guard
 	return tb
 }
 func (tb *transitionBuilderImpl) SetEffect(effect TransitionEffect, labels ...string) TransitionBuilder {
-	for _, l := range labels {
-		tb.effectLabels = append(tb.effectLabels, l)
-	}
+	tb.effectLabels = append(tb.effectLabels, labels...)
 	tb.action = effect
 
 	return tb

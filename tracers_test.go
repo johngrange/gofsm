@@ -11,7 +11,6 @@ import (
 
 var _ = Describe("test tracers", func() {
 	type fsmData struct {
-		followGuardOffToOn bool
 	}
 
 	var (

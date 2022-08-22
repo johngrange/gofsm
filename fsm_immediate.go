@@ -8,63 +8,25 @@ import (
 
 type immediateFSMImpl struct {
 	running              bool
-	initialState         StateBuilder // always populated
-	finalState           StateBuilder // may be nil
+	initialState         State // always populated
+	finalState           State // may be nil
 	states               []State
 	currentState         State
 	fsmData              interface{}
 	tracers              []Tracer
-	doTrace              bool
 	eventProcesingActive bool
 	eventQueue           chan Event
 	dispatcher           Dispatcher
 }
 
-func NewImmediateFSM(data interface{}) ImmediateFSMBuilder {
-	// Creates a new immediate FSM with a standard initial state
-	return newImmediateFSM(NewState(InitialStateName), data)
-}
-
-func newImmediateFSM(initialState StateBuilder, data interface{}) ImmediateFSMBuilder {
-	fsm := &immediateFSMImpl{
-		initialState: initialState,
-		running:      false,
-		states:       []State{initialState},
-		currentState: initialState,
-		fsmData:      data,
-		tracers:      make([]Tracer, 0),
-		eventQueue:   make(chan Event, eventQueueLength),
-	}
-	fsm.dispatcher = fsm
-	return fsm
-}
-
-func (f *immediateFSMImpl) GetInitialState() StateBuilder {
-	return f.initialState
-}
-
-func (f *immediateFSMImpl) GetFinalState() StateBuilder {
-	return f.finalState
-}
-
-func (f *immediateFSMImpl) AddFinalState() StateBuilder {
-	f.finalState = NewState(FinalStateName)
-	return f.finalState
-}
-
-func (f *immediateFSMImpl) AddTracer(t Tracer) ImmediateFSMBuilder {
+func (f *immediateFSMImpl) AddTracer(t Tracer) {
 	f.tracers = append(f.tracers, t)
-	return f
 }
 
 func (f *immediateFSMImpl) traceTransition(ev Event, source, target State) {
 	for _, t := range f.tracers {
 		t.OnTransition(ev, source, target, f.fsmData)
 	}
-}
-func (f *immediateFSMImpl) AddState(s State) ImmediateFSMBuilder {
-	f.states = append(f.states, s)
-	return f
 }
 
 func (f *immediateFSMImpl) Start() {

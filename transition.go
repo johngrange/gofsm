@@ -38,28 +38,6 @@ func (t *transitionImpl) Source() State {
 func (t *transitionImpl) Target() State {
 	return t.target
 }
-func (t *transitionImpl) SetTrigger(eventName string, labels ...string) TransitionBuilder {
-	for _, l := range labels {
-		t.triggerLabels = append(t.triggerLabels, l)
-	}
-	t.triggerEvent = eventName
-	return t
-}
-
-func (t *transitionImpl) SetGuard(guard TransitionGuard, labels ...string) TransitionBuilder {
-	for _, l := range labels {
-		t.guardLabels = append(t.guardLabels, l)
-	}
-	t.guard = guard
-	return t
-}
-func (t *transitionImpl) SetEffect(action TransitionEffect, labels ...string) TransitionBuilder {
-	for _, l := range labels {
-		t.effectLabels = append(t.effectLabels, l)
-	}
-	t.action = action
-	return t
-}
 
 func (t *transitionImpl) shouldTransitionEv(ev Event, fsmData interface{}) bool {
 	return ev.Name() == t.triggerEvent && t.guard(fsmData, ev.Data())

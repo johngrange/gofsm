@@ -16,21 +16,15 @@ type FSMTraceEntry struct {
 }
 
 type FSMBuilder interface {
-	AddState(State) FSMBuilder
+	AddState(StateBuilder) FSMBuilder
+	NewState(name string, labels ...string) StateBuilder
 	AddTracer(Tracer) FSMBuilder
 	AddFinalState() StateBuilder
 	GetInitialState() StateBuilder
 	GetFinalState() StateBuilder
-	FSM
-}
-
-type ImmediateFSMBuilder interface {
-	AddState(State) ImmediateFSMBuilder
-	AddTracer(Tracer) ImmediateFSMBuilder
-	AddFinalState() StateBuilder
-	GetInitialState() StateBuilder
-	GetFinalState() StateBuilder
-	ImmediateFSM
+	BuildImmediateFSM() (ImmediateFSM, error)
+	BuildThreadedFSM() (FSM, error)
+	SetData(data interface{}) FSMBuilder
 }
 
 type Dispatcher interface {
@@ -40,6 +34,7 @@ type Dispatcher interface {
 type FSM interface {
 	Dispatcher
 	Visitable
+	Observable
 
 	CurrentState() State
 	Start()
@@ -60,10 +55,11 @@ type Event interface {
 }
 
 type StateBuilder interface {
-	AddTransition(target State, labels ...string) TransitionBuilder
-	OnEntry(action Action, labels ...string) State
-	OnExit(action Action, labels ...string) State
-	State
+	AddTransition(target StateBuilder, labels ...string) TransitionBuilder
+	OnEntry(action Action, labels ...string) StateBuilder
+	OnExit(action Action, labels ...string) StateBuilder
+	build() (State, error)
+	buildTransitions() error
 }
 
 type State interface {
@@ -91,7 +87,9 @@ type TransitionBuilder interface {
 	SetTrigger(eventName string, labels ...string) TransitionBuilder
 	SetGuard(guard TransitionGuard, labels ...string) TransitionBuilder
 	SetEffect(efffect TransitionEffect, labels ...string) TransitionBuilder
-	Transition
+	Source() StateBuilder
+	Target() StateBuilder
+	build(source, target State) (Transition, error)
 }
 
 type Transition interface {
@@ -109,6 +107,9 @@ type Transition interface {
 
 type Visitable interface {
 	Visit(Visitor)
+}
+type Observable interface {
+	AddTracer(Tracer)
 }
 
 type Visitor interface {

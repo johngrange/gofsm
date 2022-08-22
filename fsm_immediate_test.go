@@ -8,17 +8,19 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Threaded FSM", func() {
+var _ = Describe("Immediate FSM", func() {
 	type fsmData struct {
 		errorDuringOn      bool
 		followGuardOffToOn bool
 	}
 
 	var (
-		stateMachine                           fsm.ImmediateFSMBuilder
+		smb                                    fsm.FSMBuilder
+		stateMachine                           fsm.ImmediateFSM
 		data                                   *fsmData
 		onState, offState, startingState, init fsm.StateBuilder
 		currStateName                          func() string
+		err                                    error
 	)
 
 	BeforeEach(func() {
@@ -26,20 +28,20 @@ var _ = Describe("Threaded FSM", func() {
 			return stateMachine.CurrentState().Name()
 		}
 		data = &fsmData{}
-		stateMachine = fsm.NewImmediateFSM(data)
-		init = stateMachine.GetInitialState()
+		smb = fsm.NewFSMBuilder().SetData(data)
+		init = smb.GetInitialState()
 
-		startingState = fsm.NewState("starting")
+		startingState = fsm.NewStateBuilder("starting")
 
-		onState = fsm.NewState("on")
-		offState = fsm.NewState("off")
+		onState = fsm.NewStateBuilder("on")
+		offState = fsm.NewStateBuilder("off")
 
 		init.AddTransition(startingState)
 		startingState.AddTransition(offState)
 
 		offState.AddTransition(onState).SetTrigger("TurnOn")
 		onState.AddTransition(offState).SetTrigger("TurnOff")
-		stateMachine.
+		smb.
 			AddState(startingState).
 			AddState(onState).
 			AddState(offState)
@@ -47,10 +49,14 @@ var _ = Describe("Threaded FSM", func() {
 	})
 	When("starting an fsm", func() {
 		It("should be in the initial state before start is called", func() {
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			Expect(stateMachine.CurrentState()).NotTo(BeNil())
 			Expect(stateMachine.CurrentState().Name()).To(Equal("initial"))
 		})
 		It("should transition through unguarded, non event transitions when start is called", func() {
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 			Expect(stateMachine.CurrentState()).NotTo(BeNil())
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
@@ -58,6 +64,8 @@ var _ = Describe("Threaded FSM", func() {
 	})
 	When("dispatching an event", func() {
 		It("should not transition if a known event is presented in the wrong state", func() {
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 
@@ -65,6 +73,8 @@ var _ = Describe("Threaded FSM", func() {
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 		})
 		It("should not transition if an unknown event is presented in the wrong state", func() {
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 
@@ -72,6 +82,8 @@ var _ = Describe("Threaded FSM", func() {
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 		})
 		It("should not transition if an event is presented in the right state", func() {
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 
@@ -86,6 +98,8 @@ var _ = Describe("Threaded FSM", func() {
 			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
 				return true
 			})
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			Expect(stateMachine.CurrentState()).NotTo(BeNil())
 			Expect(stateMachine.CurrentState().Name()).To(Equal("initial"))
 		})
@@ -96,6 +110,8 @@ var _ = Describe("Threaded FSM", func() {
 			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
 				return false
 			})
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 			Consistently(currStateName).Should(Equal("off"))
 
@@ -104,6 +120,8 @@ var _ = Describe("Threaded FSM", func() {
 			offState.AddTransition(onState).SetGuard(func(data, eventData interface{}) bool {
 				return true
 			})
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 			Eventually(currStateName).Should(Equal("on"))
 
@@ -116,6 +134,8 @@ var _ = Describe("Threaded FSM", func() {
 				return d.followGuardOffToOn
 			})
 			data.followGuardOffToOn = false
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 
 			Consistently(currStateName).Should(Equal("off"))
@@ -131,6 +151,8 @@ var _ = Describe("Threaded FSM", func() {
 				return d.followGuardOffToOn
 			})
 			data.followGuardOffToOn = false
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Start()
 
 			Consistently(currStateName).Should(Equal("off"))
@@ -144,6 +166,8 @@ var _ = Describe("Threaded FSM", func() {
 	When("applying visitor pattern", func() {
 		It("should visit each element once", func() {
 			counter := countingVisitor{}
+			stateMachine, err = smb.BuildImmediateFSM()
+			Expect(err).NotTo(HaveOccurred())
 			stateMachine.Visit(&counter)
 			Expect(counter.stateCount).To(Equal(4))
 			Expect(counter.transitionCount).To(Equal(4))

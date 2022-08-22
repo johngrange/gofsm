@@ -21,22 +21,23 @@ var _ = Describe("Plant UML Rendering", func() {
 	}
 
 	var (
-		stateMachine                           fsm.FSMBuilder
+		stateMachine                           fsm.FSM
 		data                                   *fsmData
 		onState, offState, startingState, init fsm.StateBuilder
+		err                                    error
 	)
 
 	When("rendering uml", func() {
 		It("should get the output right!", func() {
 			data = &fsmData{}
-			stateMachine = fsm.NewThreadedFSM(data)
-			init = stateMachine.GetInitialState()
+			stateMachineBuilder := fsm.NewFSMBuilder().SetData(data)
+			init = stateMachineBuilder.GetInitialState()
 
-			startingState = fsm.NewState("starting")
+			startingState = fsm.NewStateBuilder("starting")
 			startingState.OnEntry(func(state fsm.State, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "initialise system")
 
-			onState = fsm.NewState("on", "the on state")
-			offState = fsm.NewState("off")
+			onState = fsm.NewStateBuilder("on", "the on state")
+			offState = fsm.NewStateBuilder("off")
 
 			init.AddTransition(startingState)
 			startingState.AddTransition(offState)
@@ -44,21 +45,23 @@ var _ = Describe("Plant UML Rendering", func() {
 			offState.AddTransition(onState).SetTrigger("TurnOn").SetGuard(func(fsmData, eventData interface{}) bool { return true }, "power==active")
 			onState.AddTransition(offState).SetTrigger("TurnOff").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "perform effect")
 
-			onState.AddTransition(stateMachine.AddFinalState()).SetTrigger("FatalError").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "panic!")
+			onState.AddTransition(stateMachineBuilder.AddFinalState()).SetTrigger("FatalError").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "panic!")
 
 			onState.OnExit(func(state fsm.State, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "turn out lights")
 			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 
-			stateMachine.
+			stateMachineBuilder.
 				AddState(startingState).
 				AddState(onState).
 				AddState(offState)
 
+			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
+			Expect(err).NotTo(HaveOccurred())
 			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 
 			buf := bytes.Buffer{}
 
-			err := fsm.RenderPlantUML(&buf, stateMachine)
+			err = fsm.RenderPlantUML(&buf, stateMachine)
 			Expect(err).NotTo(HaveOccurred())
 
 			expectedUML :=

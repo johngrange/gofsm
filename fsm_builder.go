@@ -12,7 +12,7 @@ type fsmBuilder struct {
 	finalisedThreaded  FSM
 }
 
-func NewFSMBuilder() FSMBuilder {
+func NewFSMBuilder() StateMachineBuilder {
 	initialState := NewStateBuilder(InitialStateName)
 	return &fsmBuilder{
 
@@ -23,7 +23,7 @@ func NewFSMBuilder() FSMBuilder {
 	}
 }
 
-func (b *fsmBuilder) SetData(data interface{}) FSMBuilder {
+func (b *fsmBuilder) SetData(data interface{}) StateMachineBuilder {
 	b.fsmData = data
 	return b
 }
@@ -77,8 +77,9 @@ func (b *fsmBuilder) newImmediateFSMImpl() (*immediateFSMImpl, error) {
 		tracers:      b.tracers,
 		eventQueue:   make(chan Event, eventQueueLength),
 	}
+	var state State
 	for _, stateBuilder := range b.stateBuilders {
-		state, err := stateBuilder.build()
+		state, err = stateBuilder.build()
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +110,6 @@ func (b *fsmBuilder) newImmediateFSMImpl() (*immediateFSMImpl, error) {
 
 	fsm.dispatcher = fsm
 	return fsm, nil
-
 }
 func (b *fsmBuilder) BuildThreadedFSM() (FSM, error) {
 	if b.finalisedImmediate != nil {
@@ -126,10 +126,9 @@ func (b *fsmBuilder) BuildThreadedFSM() (FSM, error) {
 	return b.finalisedThreaded, nil
 }
 
-func (b *fsmBuilder) AddState(sb StateBuilder) FSMBuilder {
+func (b *fsmBuilder) AddState(sb StateBuilder) StateMachineBuilder {
 	b.stateBuilders = append(b.stateBuilders, sb)
 	return b
-
 }
 func (b *fsmBuilder) NewState(name string, labels ...string) StateBuilder {
 	sb := NewStateBuilder(name, labels...)
@@ -137,7 +136,7 @@ func (b *fsmBuilder) NewState(name string, labels ...string) StateBuilder {
 	return sb
 }
 
-func (b *fsmBuilder) AddTracer(t Tracer) FSMBuilder {
+func (b *fsmBuilder) AddTracer(t Tracer) StateMachineBuilder {
 	b.tracers = append(b.tracers, t)
 	return b
 }

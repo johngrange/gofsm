@@ -61,7 +61,6 @@ func (f *immediateFSMImpl) runToWaitCondition() {
 	}
 }
 func (f *immediateFSMImpl) doTransition(ev Event, transition Transition) {
-
 	// UML spec 14.2.3.4.5, 14.2.3.4.6
 	// state is exited after exit action completes
 

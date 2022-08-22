@@ -10,12 +10,11 @@ import (
 
 var _ = Describe("Immediate FSM", func() {
 	type fsmData struct {
-		errorDuringOn      bool
 		followGuardOffToOn bool
 	}
 
 	var (
-		smb                                    fsm.FSMBuilder
+		smb                                    fsm.StateMachineBuilder
 		stateMachine                           fsm.ImmediateFSM
 		data                                   *fsmData
 		onState, offState, startingState, init fsm.StateBuilder

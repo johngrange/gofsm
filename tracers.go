@@ -35,43 +35,43 @@ func (s *StateCounter) OnRejectedEvent(ev Event, state State, fsmData interface{
 	s.RejectedEventCounts[ev.Name()] = count
 }
 
-type FSMLogEntry struct {
+type LogEntry struct {
 	When    time.Time
 	Message string
 }
 
-type FSMLogger struct {
-	Entries  []FSMLogEntry
+type Logger struct {
+	Entries  []LogEntry
 	Detailed bool
 }
 
-func NewFSMLogger() *FSMLogger {
-	return &FSMLogger{
-		Entries: make([]FSMLogEntry, 0),
+func NewFSMLogger() *Logger {
+	return &Logger{
+		Entries: make([]LogEntry, 0),
 	}
 }
 
-func (l *FSMLogger) OnEntry(state State, fsmData interface{}) {
+func (l *Logger) OnEntry(state State, fsmData interface{}) {
 	detail := ""
 	if l.Detailed {
 		detail = fmt.Sprintf(": state: %+v, fsm: %+v", state, fsmData)
 	}
-	l.Entries = append(l.Entries, FSMLogEntry{
+	l.Entries = append(l.Entries, LogEntry{
 		time.Now(),
 		fmt.Sprintf("En  : %s%s", state.Name(), detail),
 	})
 }
-func (l *FSMLogger) OnExit(state State, fsmData interface{}) {
+func (l *Logger) OnExit(state State, fsmData interface{}) {
 	detail := ""
 	if l.Detailed {
 		detail = fmt.Sprintf(": state: %+v, fsm: %+v", state, fsmData)
 	}
-	l.Entries = append(l.Entries, FSMLogEntry{
+	l.Entries = append(l.Entries, LogEntry{
 		time.Now(),
 		fmt.Sprintf("Ex  : %s%s", state.Name(), detail),
 	})
 }
-func (l *FSMLogger) OnTransition(ev Event, sourceState, targetState State, fsmData interface{}) {
+func (l *Logger) OnTransition(ev Event, sourceState, targetState State, fsmData interface{}) {
 	detail := ""
 	if l.Detailed {
 		detail = fmt.Sprintf(":  source, %+v, target: %+v, fsm: %+v", sourceState, targetState, fsmData)
@@ -80,19 +80,18 @@ func (l *FSMLogger) OnTransition(ev Event, sourceState, targetState State, fsmDa
 	if ev != nil {
 		evName = ev.Name()
 	}
-	l.Entries = append(l.Entries, FSMLogEntry{
+	l.Entries = append(l.Entries, LogEntry{
 		time.Now(),
 		fmt.Sprintf("Tr  : %s --> %s [%s]%s", sourceState.Name(), targetState.Name(), evName, detail),
 	})
-
 }
 
-func (l *FSMLogger) OnRejectedEvent(ev Event, state State, fsmData interface{}) {
+func (l *Logger) OnRejectedEvent(ev Event, state State, fsmData interface{}) {
 	detail := ""
 	if l.Detailed {
 		detail = fmt.Sprintf(":  event, %+v, state: %+v, fsm: %+v", ev, state, fsmData)
 	}
-	l.Entries = append(l.Entries, FSMLogEntry{
+	l.Entries = append(l.Entries, LogEntry{
 		time.Now(),
 		fmt.Sprintf("Rej : %s in %s%s", ev.Name(), state.Name(), detail),
 	})

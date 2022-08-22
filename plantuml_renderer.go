@@ -5,6 +5,8 @@ import (
 	"io"
 )
 
+const InitialFinalStateSymbol = "[*]"
+
 func RenderPlantUML(w io.Writer, stateMachine FSM) error {
 	visitor := plantUMLVisitor{
 		w:    w,
@@ -26,15 +28,14 @@ func RenderPlantUML(w io.Writer, stateMachine FSM) error {
 }
 
 type plantUMLVisitor struct {
-	w              io.Writer
-	errs           []error
-	seenFirstState bool
+	w    io.Writer
+	errs []error
 }
 
 func (p *plantUMLVisitor) VisitState(state State) {
 	stateName := state.Name()
 	if stateName == InitialStateName {
-		stateName = "[*]"
+		stateName = InitialFinalStateSymbol
 	}
 
 	for _, l := range state.StateLabels() {
@@ -48,7 +49,6 @@ func (p *plantUMLVisitor) VisitState(state State) {
 	}
 }
 func (p *plantUMLVisitor) VisitTransition(t Transition) {
-
 	evName := t.EventName()
 	if evName != "" {
 		evName = " : " + evName
@@ -69,16 +69,15 @@ func (p *plantUMLVisitor) VisitTransition(t Transition) {
 				effect += " "
 			}
 		}
-
 	}
 
 	sourceName := t.Source().Name()
 	if sourceName == InitialStateName {
-		sourceName = "[*]"
+		sourceName = InitialFinalStateSymbol
 	}
 	targetName := t.Target().Name()
 	if targetName == FinalStateName {
-		targetName = "[*]"
+		targetName = InitialFinalStateSymbol
 	}
 	_, err := fmt.Fprintf(p.w, "%s --> %s%s%s%s\n", sourceName, targetName, evName, guard, effect)
 	if err != nil {

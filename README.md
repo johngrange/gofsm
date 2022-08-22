@@ -16,7 +16,15 @@ Non Goals:
 
 For detailed usage, look at the test cases.
 
-An example of a car park payment meter is shown below:
+## Self Documenting
+
+gofsm can automatically produce [PlantUML state machine diagrams](https://plantuml.com/state-diagram).  The example below will create the diagram below:
+
+![uml diagram](./examples/paymentmeter/paymentmeter.png)
+
+## Examples
+
+An example of a car park payment meter is shown below (from examples/paymentmeter):
 ```go
 package main
 
@@ -182,8 +190,3 @@ func main() {
 
 ```
 
-## Self Documenting
-
-gofsm can automatically produce [PlantUML state machine diagrams](https://plantuml.com/state-diagram).  The example above, will create the diagram below:
-
-![uml diagram](./examples/paymentmeter/paymentmeter.png)

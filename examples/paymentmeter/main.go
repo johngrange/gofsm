@@ -1,31 +1,3 @@
-# README
-Very simple finite state machine in golang.
-
-Based, loosely on FSM from Rational Rhapsody.
-
-## Goals and Non Goals
-Goals:
-- To provide useful, simple to use FSM for golang
-- To follow UML state diagram semantics as far as reasonable for the features implemented.
-- Provide concurrent and non-concurrent implementations.
-
-Non Goals:
-- Full implementation of UML state machine specification
-
-## Usage
-
-For detailed usage, look at the test cases and examples folder.
-
-## Self Documenting
-
-gofsm can automatically produce [PlantUML state machine diagrams](https://plantuml.com/state-diagram).  The example below will create the diagram below:
-
-![uml diagram](./examples/paymentmeter/paymentmeter.png)
-
-## Examples
-
-An example of a car park payment meter is shown below (from examples/paymentmeter):
-```go
 package main
 
 import (
@@ -187,6 +159,3 @@ func main() {
 	}
 
 }
-
-```
-

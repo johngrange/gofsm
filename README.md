@@ -186,4 +186,4 @@ func main() {
 
 gofsm can automatically produce PlantUML state machine diagrams.  The example above, will create the diagram below:
 
-[uml diagram](./examples/paymentmeter/paymentmeter.png)
+![uml diagram](./examples/paymentmeter/paymentmeter.png)

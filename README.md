@@ -14,7 +14,7 @@ Non Goals:
 
 ## Usage
 
-For detailed usage, look at the test cases.
+For detailed usage, look at the test cases and examples folder.
 
 ## Self Documenting
 

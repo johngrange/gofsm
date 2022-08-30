@@ -3,7 +3,7 @@ module github.com/johngrange/gofsm
 go 1.17
 
 require (
-	github.com/onsi/ginkgo/v2 v2.1.5
+	github.com/onsi/ginkgo/v2 v2.1.6
 	github.com/onsi/gomega v1.20.1
 )
 

@@ -41,7 +41,7 @@ func main() {
 
 	printingTicketStateBuilder = fsm.NewStateBuilder("printingTicket")
 
-	idleStateBuilder.AddTransition(acceptingPaymentStateBuilder).SetTrigger("evInsertCoin").SetEffect(
+	idleStateBuilder.AddTransition(acceptingPaymentStateBuilder).SetEventTrigger("evInsertCoin").SetEffect(
 		func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 			stateData := &(fsmData).(*paymentMeter).currentPayment
 			fmt.Printf("stateData: %+v\n", stateData)
@@ -52,7 +52,7 @@ func main() {
 		}, "coinValue += ev.coinAmount", "numCoins++", // add labels to effect in plant uml output
 	) // parameter is coin value: uint
 
-	acceptingPaymentStateBuilder.AddTransition(acceptingPaymentStateBuilder).SetTrigger("evInsertCoin").SetEffect(
+	acceptingPaymentStateBuilder.AddTransition(acceptingPaymentStateBuilder).SetEventTrigger("evInsertCoin").SetEffect(
 		func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 			stateData := &(fsmData).(*paymentMeter).currentPayment
 			fmt.Printf("stateData: %+v\n", stateData)
@@ -65,7 +65,7 @@ func main() {
 		}, "coinValue += ev.coinAmount", "numCoins++", // add labels to effect in plant uml output
 	) // parameter is coin value: uint
 
-	acceptingPaymentStateBuilder.AddTransition(printingTicketStateBuilder).SetTrigger("evPrintTicket").
+	acceptingPaymentStateBuilder.AddTransition(printingTicketStateBuilder).SetEventTrigger("evPrintTicket").
 		SetGuard(func(fsmData, eventData interface{}) bool {
 			meterData := (fsmData).(*paymentMeter)
 

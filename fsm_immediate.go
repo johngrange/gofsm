@@ -2,6 +2,7 @@ package fsm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/onsi/ginkgo/v2"
 )
@@ -17,6 +18,8 @@ type immediateFSMImpl struct {
 	eventProcesingActive bool
 	eventQueue           chan Event
 	dispatcher           Dispatcher
+	houseKeepStateExit   func()
+	houseKeepStateEntry  func()
 }
 
 func (f *immediateFSMImpl) AddTracer(t Tracer) {
@@ -67,19 +70,26 @@ func (f *immediateFSMImpl) doTransition(ev Event, transition Transition) {
 	// we are in new state before transition effect and new state entry actions called
 
 	// if local transition, do not call exit or entry actions
-
 	oldState := f.currentState
 	nextState := transition.Target()
+	fmt.Fprintf(ginkgo.GinkgoWriter, "transitioning from %s to %s\n", oldState.Name(), nextState.Name())
 
 	transition.doAction(ev, f)
 	f.traceTransition(ev, f.currentState, transition.Target())
 
 	if !transition.IsLocal() {
 		oldState.doExit(f)
+		f.houseKeepStateExit()
 		f.traceOnExit(oldState, f.fsmData)
 		f.currentState = nextState
 		nextState.doEntry(f)
 		f.traceOnEntry(nextState, f.fsmData)
+		// start transition timers if transitions need them
+		timeNow := time.Now()
+		for _, transition := range f.currentState.Transitions() {
+			transition.startTimer(timeNow)
+		}
+		f.houseKeepStateEntry()
 	}
 }
 func (f *immediateFSMImpl) CurrentState() State {

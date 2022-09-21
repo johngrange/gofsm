@@ -1,5 +1,7 @@
 package fsm
 
+import "time"
+
 type transitionBuilderImpl struct {
 	source              StateBuilder
 	target              StateBuilder
@@ -11,6 +13,8 @@ type transitionBuilderImpl struct {
 	guardLabels         []string
 	effectLabels        []string
 	finalisedTransition Transition
+	triggerType         TriggerType
+	timeoutTrigger      time.Duration
 }
 
 func newTransitionBuilder(sourceStateBuilder, targetStateBuilder StateBuilder, labels ...string) TransitionBuilder {
@@ -20,20 +24,30 @@ func newTransitionBuilder(sourceStateBuilder, targetStateBuilder StateBuilder, l
 		guard: func(fsmData, eventData interface{}) bool {
 			return true
 		},
-		action:        func(ev Event, fsmData interface{}, dispatcher Dispatcher) {},
-		labels:        []string{},
-		triggerLabels: []string{},
-		guardLabels:   []string{},
-		effectLabels:  []string{},
+		action:         func(ev Event, fsmData interface{}, dispatcher Dispatcher) {},
+		labels:         []string{},
+		triggerLabels:  []string{},
+		guardLabels:    []string{},
+		effectLabels:   []string{},
+		triggerType:    NoTrigger,
+		timeoutTrigger: 0,
 	}
 	tb.labels = append(tb.labels, labels...)
 	return tb
 }
 
-func (tb *transitionBuilderImpl) SetTrigger(eventName string, labels ...string) TransitionBuilder {
+func (tb *transitionBuilderImpl) SetEventTrigger(eventName string, labels ...string) TransitionBuilder {
 	tb.triggerLabels = append(tb.triggerLabels, labels...)
 	tb.triggerEvent = eventName
+	tb.triggerType = EventTrigger
 
+	return tb
+}
+
+func (tb *transitionBuilderImpl) SetTimedTrigger(timer time.Duration, labels ...string) TransitionBuilder {
+	tb.triggerLabels = append(tb.triggerLabels, labels...)
+	tb.timeoutTrigger = timer
+	tb.triggerType = TimerTrigger
 	return tb
 }
 func (tb *transitionBuilderImpl) SetGuard(guard TransitionGuard, labels ...string) TransitionBuilder {
@@ -60,15 +74,21 @@ func (tb *transitionBuilderImpl) build(source, target State) (Transition, error)
 		return tb.finalisedTransition, nil
 	}
 	tb.finalisedTransition = &transitionImpl{
-		source:        source,
-		target:        target,
-		guard:         tb.guard,
-		action:        tb.action,
-		triggerEvent:  tb.triggerEvent,
-		labels:        tb.labels,
-		triggerLabels: tb.triggerLabels,
-		guardLabels:   tb.guardLabels,
-		effectLabels:  tb.effectLabels,
+		source:         source,
+		target:         target,
+		guard:          tb.guard,
+		action:         tb.action,
+		triggerEvent:   tb.triggerEvent,
+		labels:         tb.labels,
+		triggerLabels:  tb.triggerLabels,
+		guardLabels:    tb.guardLabels,
+		effectLabels:   tb.effectLabels,
+		triggerType:    tb.triggerType,
+		timeoutTrigger: tb.timeoutTrigger,
 	}
 	return tb.finalisedTransition, nil
+}
+
+func (tb *transitionBuilderImpl) TriggerType() TriggerType {
+	return tb.triggerType
 }

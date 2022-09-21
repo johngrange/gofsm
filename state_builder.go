@@ -1,11 +1,5 @@
 package fsm
 
-import (
-	"fmt"
-
-	"github.com/onsi/ginkgo/v2"
-)
-
 type fsmStateBuilder struct {
 	name           string
 	transitions    []TransitionBuilder
@@ -52,10 +46,8 @@ func (sb *fsmStateBuilder) AddTransition(target StateBuilder, labels ...string) 
 
 func (sb *fsmStateBuilder) build() (State, error) {
 	if sb.finalisedState != nil {
-		fmt.Fprintf(ginkgo.GinkgoWriter, "returning built state %s, transitions: %d\n", sb.finalisedState.Name(), len(sb.finalisedState.Transitions()))
 		return sb.finalisedState, nil
 	}
-	fmt.Fprintf(ginkgo.GinkgoWriter, "building state %s\n", sb.name)
 	state := &fsmStateImpl{
 		name:        sb.name,
 		transitions: make([]Transition, 0),
@@ -70,7 +62,6 @@ func (sb *fsmStateBuilder) build() (State, error) {
 }
 
 func (sb *fsmStateBuilder) buildTransitions() error {
-	fmt.Fprintf(ginkgo.GinkgoWriter, "building transitions for state %s, with %d transitions\n", sb.name, len(sb.transitions))
 
 	for _, tb := range sb.transitions {
 		var source, target State
@@ -89,7 +80,6 @@ func (sb *fsmStateBuilder) buildTransitions() error {
 		}
 		sb.finalisedState.transitions = append(sb.finalisedState.transitions, transition)
 	}
-	fmt.Fprintf(ginkgo.GinkgoWriter, "state %s has %d transitions after building\n", sb.finalisedState.name, len(sb.finalisedState.transitions))
 
 	return nil
 }

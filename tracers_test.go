@@ -33,8 +33,8 @@ var _ = Describe("test tracers", func() {
 		init.AddTransition(startingState)
 		startingState.AddTransition(offState)
 
-		offState.AddTransition(onState).SetTrigger("TurnOn")
-		onState.AddTransition(offState).SetTrigger("TurnOff")
+		offState.AddTransition(onState).SetEventTrigger("TurnOn")
+		onState.AddTransition(offState).SetEventTrigger("TurnOff")
 		smb.
 			AddState(startingState).
 			AddState(onState).

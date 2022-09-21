@@ -68,14 +68,16 @@ func (b *fsmBuilder) newImmediateFSMImpl() (*immediateFSMImpl, error) {
 		}
 	}
 	fsm := &immediateFSMImpl{
-		initialState: initialState,
-		running:      false,
-		states:       []State{initialState},
-		currentState: initialState,
-		finalState:   finalState,
-		fsmData:      b.fsmData,
-		tracers:      b.tracers,
-		eventQueue:   make(chan Event, eventQueueLength),
+		initialState:        initialState,
+		running:             false,
+		states:              []State{initialState},
+		currentState:        initialState,
+		finalState:          finalState,
+		fsmData:             b.fsmData,
+		tracers:             b.tracers,
+		eventQueue:          make(chan Event, eventQueueLength),
+		houseKeepStateExit:  func() {}, // do nothing for immediate fsm
+		houseKeepStateEntry: func() {}, // do nothing for immediate fsm
 	}
 	var state State
 	for _, stateBuilder := range b.stateBuilders {
@@ -122,6 +124,7 @@ func (b *fsmBuilder) BuildThreadedFSM() (FSM, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	b.finalisedThreaded = newThreadedFSM(imm)
 	return b.finalisedThreaded, nil
 }

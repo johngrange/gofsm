@@ -46,7 +46,7 @@ var _ = Describe("Tests for data in states", func() {
 
 		init.AddTransition(idleState)
 
-		idleState.AddTransition(acceptingPaymentState).SetTrigger("evInsertCoin").SetEffect(
+		idleState.AddTransition(acceptingPaymentState).SetEventTrigger("evInsertCoin").SetEffect(
 			func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				stateData := &(fsmData).(*paymentMeter).currentPayment
 				fmt.Fprintf(GinkgoWriter, "stateData: %+v\n", stateData)
@@ -57,7 +57,7 @@ var _ = Describe("Tests for data in states", func() {
 			},
 		) // parameter is coin value: uint
 
-		acceptingPaymentState.AddTransition(acceptingPaymentState).SetTrigger("evInsertCoin").SetEffect(
+		acceptingPaymentState.AddTransition(acceptingPaymentState).SetEventTrigger("evInsertCoin").SetEffect(
 			func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				stateData := &(fsmData).(*paymentMeter).currentPayment
 				fmt.Fprintf(GinkgoWriter, "stateData: %+v\n", stateData)
@@ -70,7 +70,7 @@ var _ = Describe("Tests for data in states", func() {
 			},
 		) // parameter is coin value: uint
 
-		acceptingPaymentState.AddTransition(printingTicketState).SetTrigger("evPrintTicket").
+		acceptingPaymentState.AddTransition(printingTicketState).SetEventTrigger("evPrintTicket").
 			SetGuard(func(fsmData, eventData interface{}) bool {
 				meterData := (fsmData).(*paymentMeter)
 

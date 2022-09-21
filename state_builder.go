@@ -62,7 +62,6 @@ func (sb *fsmStateBuilder) build() (State, error) {
 }
 
 func (sb *fsmStateBuilder) buildTransitions() error {
-
 	for _, tb := range sb.transitions {
 		var source, target State
 		var err error

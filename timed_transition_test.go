@@ -91,7 +91,6 @@ var _ = Describe("Timed transition tests", func() {
 		type fsmData struct {
 			abGuard bool
 			acGuard bool
-			caGuard bool
 		}
 		var (
 			data                   *fsmData

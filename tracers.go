@@ -100,7 +100,7 @@ func (l *Logger) OnRejectedEvent(ev Event, state State, fsmData interface{}) {
 
 func (l *Logger) Fprint(w io.Writer) error {
 	for _, entry := range l.Entries {
-		_, err := fmt.Fprintf(w, "%s: %s\n", entry.When.Format(time.RFC3339), entry.Message)
+		_, err := fmt.Fprintf(w, "%s: %s\n", entry.When.Format(time.RFC3339Nano), entry.Message)
 		if err != nil {
 			return err
 		}

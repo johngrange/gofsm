@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Timed transition tests", FlakeAttempts(5), func() {
+var _ = Describe("Timed transition tests", func() {
 
 	Describe("simple state machine", func() {
 		type fsmData struct {

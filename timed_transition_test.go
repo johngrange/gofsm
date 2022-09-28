@@ -137,6 +137,9 @@ var _ = Describe("Timed transition tests", FlakeAttempts(5), func() {
 			})
 			It("should follow a shorter timer if both guards are true", func() {
 				stateMachine, err := stateMachineBuilder.BuildThreadedFSM()
+				logger := fsm.NewFSMLogger()
+				stateMachine.AddTracer(logger)
+				defer logger.Fprint(GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				currStateName := func() string {
 					return stateMachine.CurrentState().Name()

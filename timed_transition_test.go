@@ -199,18 +199,6 @@ var _ = Describe("Timed transition tests", func() {
 				stateMachine.Tick()
 				Expect(stateMachine.CurrentState().Name()).To(Equal("stateC"))
 			})
-			PIt("Should measure sleep jitter", func() {
-				start := time.Now()
-				times := make([]time.Duration, 100)
-				for i := 0; i < 100; i++ {
-					time.Sleep(15 * time.Millisecond)
-					times[i] = time.Since(start)
-				}
-				for i := 1; i < 100; i++ {
-					fmt.Printf("%s\n", times[i]-times[i-1])
-				}
-				Expect(1).To(Equal(2))
-			})
 		})
 
 	})

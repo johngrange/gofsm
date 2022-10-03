@@ -75,6 +75,7 @@ var _ = Describe("Timed transition tests", func() {
 				Consistently(currStateName, "100ms").Should(Equal("on"))
 				data.followGuardOnToOff = true
 				Eventually(currStateName, "200ms").Should(Equal("off"))
+				data.followGuardOnToOff = false
 				Eventually(currStateName, "200ms").Should(Equal("on"))
 				Consistently(currStateName, "100ms").Should(Equal("on"))
 			})

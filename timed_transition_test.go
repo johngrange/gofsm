@@ -10,7 +10,16 @@ import (
 )
 
 var _ = Describe("Timed transition tests", func() {
-
+	printLog := func(logger *fsm.Logger) {
+		fmt.Fprintf(GinkgoWriter, "Printing log\n")
+		if len(logger.Entries) == 0 {
+			return
+		}
+		firstTime := logger.Entries[0].When
+		for _, entry := range logger.Entries {
+			fmt.Fprintf(GinkgoWriter, "%s: %s\n", entry.When.Sub(firstTime), entry.Message)
+		}
+	}
 	Describe("simple state machine", func() {
 		type fsmData struct {
 			followGuardOnToOff bool
@@ -19,6 +28,7 @@ var _ = Describe("Timed transition tests", func() {
 			data                    *fsmData
 			onState, offState, init fsm.StateBuilder
 			stateMachineBuilder     fsm.StateMachineBuilder
+			logger                  *fsm.Logger
 		)
 
 		BeforeEach(func() {
@@ -43,12 +53,19 @@ var _ = Describe("Timed transition tests", func() {
 			stateMachineBuilder.
 				AddState(onState).
 				AddState(offState)
+			logger = fsm.NewFSMLogger()
 
+		})
+		AfterEach(func() {
+			printLog(logger)
 		})
 		When("processing timers on threaded fsm", func() {
 			It("should transition without external stimuli", func() {
 				stateMachine, err := stateMachineBuilder.BuildThreadedFSM()
 				Expect(err).NotTo(HaveOccurred())
+
+				stateMachine.AddTracer(logger)
+
 				currStateName := func() string {
 					return stateMachine.CurrentState().Name()
 				}
@@ -66,6 +83,9 @@ var _ = Describe("Timed transition tests", func() {
 			It("should only transition during Tick() calls", func() {
 				stateMachine, err := stateMachineBuilder.BuildImmediateFSM()
 				Expect(err).NotTo(HaveOccurred())
+
+				stateMachine.AddTracer(logger)
+
 				currStateName := func() string {
 					return stateMachine.CurrentState().Name()
 				}
@@ -96,6 +116,7 @@ var _ = Describe("Timed transition tests", func() {
 			data                   *fsmData
 			stateA, stateB, stateC fsm.StateBuilder
 			stateMachineBuilder    fsm.StateMachineBuilder
+			logger                 *fsm.Logger
 		)
 
 		BeforeEach(func() {
@@ -121,16 +142,17 @@ var _ = Describe("Timed transition tests", func() {
 				AddState(stateA).
 				AddState(stateB).
 				AddState(stateC)
-
+			logger = fsm.NewFSMLogger()
+		})
+		AfterEach(func() {
+			printLog(logger)
 		})
 		When("processing timers on threaded fsm", func() {
 			It("should follow a longer timer if shorter guard is false", func() {
 				stateMachine, err := stateMachineBuilder.BuildThreadedFSM()
 				Expect(err).NotTo(HaveOccurred())
 
-				logger := fsm.NewFSMLogger()
 				stateMachine.AddTracer(logger)
-				defer logger.Fprint(GinkgoWriter)
 
 				currStateName := func() string {
 					return stateMachine.CurrentState().Name()
@@ -144,9 +166,7 @@ var _ = Describe("Timed transition tests", func() {
 				stateMachine, err := stateMachineBuilder.BuildThreadedFSM()
 				Expect(err).NotTo(HaveOccurred())
 
-				logger := fsm.NewFSMLogger()
 				stateMachine.AddTracer(logger)
-				defer logger.Fprint(GinkgoWriter)
 
 				currStateName := func() string {
 					return stateMachine.CurrentState().Name()
@@ -165,9 +185,7 @@ var _ = Describe("Timed transition tests", func() {
 				stateMachine, err := stateMachineBuilder.BuildImmediateFSM()
 				Expect(err).NotTo(HaveOccurred())
 
-				logger := fsm.NewFSMLogger()
 				stateMachine.AddTracer(logger)
-				defer logger.Fprint(GinkgoWriter)
 
 				data.abGuard = true
 				data.acGuard = true
@@ -179,6 +197,18 @@ var _ = Describe("Timed transition tests", func() {
 				time.Sleep(20 * time.Millisecond)
 				stateMachine.Tick()
 				Expect(stateMachine.CurrentState().Name()).To(Equal("stateC"))
+			})
+			PIt("Should measure sleep jitter", func() {
+				start := time.Now()
+				times := make([]time.Duration, 100)
+				for i := 0; i < 100; i++ {
+					time.Sleep(15 * time.Millisecond)
+					times[i] = time.Since(start)
+				}
+				for i := 1; i < 100; i++ {
+					fmt.Printf("%s\n", times[i]-times[i-1])
+				}
+				Expect(1).To(Equal(2))
 			})
 		})
 

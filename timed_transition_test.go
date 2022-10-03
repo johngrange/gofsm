@@ -192,7 +192,7 @@ var _ = Describe("Timed transition tests", func() {
 				data.acGuard = true
 				stateMachine.Start()
 				Expect(stateMachine.CurrentState().Name()).To(Equal("stateA"))
-				time.Sleep(150 * time.Millisecond)
+				time.Sleep(100 * time.Millisecond)
 				stateMachine.Tick()
 				Expect(stateMachine.CurrentState().Name()).To(Equal("stateC"))
 				time.Sleep(200 * time.Millisecond)

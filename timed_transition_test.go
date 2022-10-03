@@ -43,8 +43,8 @@ var _ = Describe("Timed transition tests", func() {
 
 			init.AddTransition(offState)
 
-			offState.AddTransition(onState).SetTimedTrigger(time.Millisecond * 10)
-			onState.AddTransition(offState).SetTimedTrigger(time.Millisecond * 15).SetGuard(func(data, eventData interface{}) bool {
+			offState.AddTransition(onState).SetTimedTrigger(time.Millisecond * 100)
+			onState.AddTransition(offState).SetTimedTrigger(time.Millisecond * 150).SetGuard(func(data, eventData interface{}) bool {
 				d := data.(*fsmData)
 				fmt.Fprintf(GinkgoWriter, "checking on-off guard with data %+v\n", d)
 				return d.followGuardOnToOff
@@ -70,13 +70,13 @@ var _ = Describe("Timed transition tests", func() {
 					return stateMachine.CurrentState().Name()
 				}
 				stateMachine.Start()
-				Eventually(currStateName, "20ms").Should(Equal("off"))
-				Eventually(currStateName, "50ms").Should(Equal("on"))
-				Consistently(currStateName, "10ms").Should(Equal("on"))
+				Eventually(currStateName, "200ms").Should(Equal("off"))
+				Eventually(currStateName, "500ms").Should(Equal("on"))
+				Consistently(currStateName, "100ms").Should(Equal("on"))
 				data.followGuardOnToOff = true
-				Eventually(currStateName, "20ms").Should(Equal("off"))
-				Eventually(currStateName, "20ms").Should(Equal("on"))
-				Consistently(currStateName, "10ms").Should(Equal("on"))
+				Eventually(currStateName, "200ms").Should(Equal("off"))
+				Eventually(currStateName, "200ms").Should(Equal("on"))
+				Consistently(currStateName, "100ms").Should(Equal("on"))
 			})
 		})
 		When("processing timers on immediate fsm", func() {
@@ -91,17 +91,17 @@ var _ = Describe("Timed transition tests", func() {
 				}
 				stateMachine.Start()
 				Expect(currStateName()).To(Equal("off"))
-				Consistently(currStateName, "20ms").Should(Equal("off"))
+				Consistently(currStateName, "200ms").Should(Equal("off"))
 				stateMachine.Tick()
 				Expect(currStateName()).To(Equal("on"))
-				Consistently(currStateName, "20ms").Should(Equal("on"))
+				Consistently(currStateName, "200ms").Should(Equal("on"))
 				stateMachine.Tick()
-				Consistently(currStateName, "20ms").Should(Equal("on"))
+				Consistently(currStateName, "200ms").Should(Equal("on"))
 				data.followGuardOnToOff = true
-				Consistently(currStateName, "20ms").Should(Equal("on"))
+				Consistently(currStateName, "200ms").Should(Equal("on"))
 				stateMachine.Tick()
 				Expect(currStateName()).To(Equal("off"))
-				Consistently(currStateName, "20ms").Should(Equal("off"))
+				Consistently(currStateName, "200ms").Should(Equal("off"))
 				stateMachine.Tick()
 				Expect(currStateName()).To(Equal("on"))
 			})

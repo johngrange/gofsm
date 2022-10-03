@@ -131,10 +131,10 @@ var _ = Describe("Timed transition tests", func() {
 
 			stateMachineBuilder.GetInitialState().AddTransition(stateA)
 
-			stateA.AddTransition(stateB).SetTimedTrigger(time.Millisecond * 20).SetGuard(func(data, eventData interface{}) bool {
+			stateA.AddTransition(stateB).SetTimedTrigger(time.Millisecond * 200).SetGuard(func(data, eventData interface{}) bool {
 				return data.(*fsmData).abGuard
 			})
-			stateA.AddTransition(stateC).SetTimedTrigger(time.Millisecond * 10).SetGuard(func(data, eventData interface{}) bool {
+			stateA.AddTransition(stateC).SetTimedTrigger(time.Millisecond * 100).SetGuard(func(data, eventData interface{}) bool {
 				return data.(*fsmData).acGuard
 			})
 
@@ -160,7 +160,7 @@ var _ = Describe("Timed transition tests", func() {
 				data.abGuard = true
 				stateMachine.Start()
 				Eventually(currStateName, "1ms").Should(Equal("stateA"))
-				Eventually(currStateName, "50ms").Should(Equal("stateB"))
+				Eventually(currStateName, "500ms").Should(Equal("stateB"))
 			})
 			It("should follow a shorter timer if both guards are true", func() {
 				stateMachine, err := stateMachineBuilder.BuildThreadedFSM()
@@ -175,9 +175,9 @@ var _ = Describe("Timed transition tests", func() {
 				data.acGuard = true
 				stateMachine.Start()
 				Eventually(currStateName, "1ms").Should(Equal("stateA"))
-				Eventually(currStateName, "30ms").Should(Equal("stateC"))
+				Eventually(currStateName, "300ms").Should(Equal("stateC"))
 				// Give time for the ab timer to have occurred
-				Consistently(currStateName, "50ms").Should(Equal("stateC"))
+				Consistently(currStateName, "500ms").Should(Equal("stateC"))
 			})
 		})
 		When("processing timers on immediate fsm", func() {
@@ -191,10 +191,10 @@ var _ = Describe("Timed transition tests", func() {
 				data.acGuard = true
 				stateMachine.Start()
 				Expect(stateMachine.CurrentState().Name()).To(Equal("stateA"))
-				time.Sleep(15 * time.Millisecond)
+				time.Sleep(150 * time.Millisecond)
 				stateMachine.Tick()
 				Expect(stateMachine.CurrentState().Name()).To(Equal("stateC"))
-				time.Sleep(20 * time.Millisecond)
+				time.Sleep(200 * time.Millisecond)
 				stateMachine.Tick()
 				Expect(stateMachine.CurrentState().Name()).To(Equal("stateC"))
 			})

@@ -13,6 +13,13 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
 
 # [Optional] Uncomment the next lines to use go get to install anything else you need
+WORKDIR /tmp
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+&& sudo apt update \
+&& sudo apt install gh -y
+RUN mkdir -p /tmp/go && GOPATH=/tmp/go go install github.com/onsi/ginkgo/v2/ginkgo@latest&& rm -Rf /tmp/go
 # USER vscode
 # RUN go get -x <your-dependency-or-tool>
 

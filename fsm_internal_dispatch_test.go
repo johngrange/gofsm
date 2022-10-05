@@ -16,14 +16,14 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			off := fsm.NewStateBuilder("off")
 			errstate := fsm.NewStateBuilder("error")
 
-			off.AddTransition(on).SetTrigger("on").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
+			off.AddTransition(on).SetEventTrigger("on").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				fmt.Fprintf(GinkgoWriter, "on transition trigger")
 				dispatcher.Dispatch(fsm.NewEvent("error", nil))
 			})
 
-			on.AddTransition(off).SetTrigger("off")
+			on.AddTransition(off).SetEventTrigger("off")
 
-			on.AddTransition(errstate).SetTrigger("error")
+			on.AddTransition(errstate).SetEventTrigger("error")
 
 			smb := fsm.NewFSMBuilder()
 			smb.AddState(on)
@@ -52,11 +52,11 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			off := fsm.NewStateBuilder("off")
 			errstate := fsm.NewStateBuilder("error")
 			fixing := fsm.NewStateBuilder("fixing")
-			off.AddTransition(errstate).SetTrigger("error")
+			off.AddTransition(errstate).SetEventTrigger("error")
 
-			off.AddTransition(on).SetTrigger("on")
+			off.AddTransition(on).SetEventTrigger("on")
 
-			on.AddTransition(off).SetTrigger("off")
+			on.AddTransition(off).SetEventTrigger("off")
 			on.OnExit(func(state fsm.State, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				dispatcher.Dispatch(fsm.NewEvent("error", nil))
 			})
@@ -65,7 +65,7 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 				dispatcher.Dispatch(fsm.NewEvent("fixit", nil))
 			})
 
-			errstate.AddTransition(fixing).SetTrigger("fixit")
+			errstate.AddTransition(fixing).SetEventTrigger("fixit")
 			smb := fsm.NewFSMBuilder()
 			smb.AddState(on)
 			smb.AddState(off)
@@ -97,13 +97,13 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			off := fsm.NewStateBuilder("off")
 			errstate := fsm.NewStateBuilder("error")
 
-			off.AddTransition(on).SetTrigger("on").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
+			off.AddTransition(on).SetEventTrigger("on").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				dispatcher.Dispatch(fsm.NewEvent("error", nil))
 			})
 
-			on.AddTransition(off).SetTrigger("off")
+			on.AddTransition(off).SetEventTrigger("off")
 
-			on.AddTransition(errstate).SetTrigger("error")
+			on.AddTransition(errstate).SetEventTrigger("error")
 
 			smb := fsm.NewFSMBuilder()
 			smb.AddState(on)
@@ -136,11 +136,11 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 			off := fsm.NewStateBuilder("off")
 			errstate := fsm.NewStateBuilder("error")
 			fixing := fsm.NewStateBuilder("fixing")
-			off.AddTransition(errstate).SetTrigger("error")
+			off.AddTransition(errstate).SetEventTrigger("error")
 
-			off.AddTransition(on).SetTrigger("on")
+			off.AddTransition(on).SetEventTrigger("on")
 
-			on.AddTransition(off).SetTrigger("off")
+			on.AddTransition(off).SetEventTrigger("off")
 			on.OnExit(func(state fsm.State, fsmData interface{}, dispatcher fsm.Dispatcher) {
 				dispatcher.Dispatch(fsm.NewEvent("error", nil))
 			})
@@ -149,7 +149,7 @@ var _ = Describe("Tests for dispatching events inside the state machine", func()
 				dispatcher.Dispatch(fsm.NewEvent("fixit", nil))
 			})
 
-			errstate.AddTransition(fixing).SetTrigger("fixit")
+			errstate.AddTransition(fixing).SetEventTrigger("fixit")
 			smb := fsm.NewFSMBuilder()
 			smb.AddState(on)
 			smb.AddState(off)

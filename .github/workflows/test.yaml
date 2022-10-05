@@ -12,4 +12,5 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
     - uses: actions/checkout@v3
-    - run: go test ./...
+    - run: go install github.com/onsi/ginkgo/v2/ginkgo@v2.0.0
+    - run: ginkgo --repeat=50  ./...

@@ -84,13 +84,22 @@ type TransitionEffect func(ev Event, fsmData interface{}, dispatcher Dispatcher)
 type TransitionGuard func(fsmData, eventData interface{}) bool
 
 type TransitionBuilder interface {
-	SetTrigger(eventName string, labels ...string) TransitionBuilder
+	SetEventTrigger(eventName string, labels ...string) TransitionBuilder
+	SetTimedTrigger(delay time.Duration, labels ...string) TransitionBuilder
 	SetGuard(guard TransitionGuard, labels ...string) TransitionBuilder
 	SetEffect(efffect TransitionEffect, labels ...string) TransitionBuilder
 	Source() StateBuilder
 	Target() StateBuilder
+	TriggerType() TriggerType
 	build(source, target State) (Transition, error)
 }
+type TriggerType uint8
+
+const (
+	NoTrigger TriggerType = iota
+	EventTrigger
+	TimerTrigger
+)
 
 type Transition interface {
 	Source() State
@@ -100,8 +109,13 @@ type Transition interface {
 	GuardLabels() []string
 	EffectLabels() []string
 	EventName() string
+	TriggerType() TriggerType
+	TimerDuration() time.Duration
 	shouldTransitionEv(ev Event, fsmData interface{}) bool // If this transition accepts supplied event and guard is met, then return true
-	shouldTransitionNoEv(fsmData interface{}) bool         // If this transition guard is met, with no need for event, then return true.  will always return false if trigger event set.
+	shouldTransitionNoEv(fsmData interface{}) bool         // If this transition guard is met, with no need for event, or timer has expired and event guard is true, then return true.
+	// will always return false if trigger event set.
+
+	startTimer(fromTime time.Time) // Starts timers if present on a transition - the timers will trigger at fromTime + TimerDuration
 	doAction(ev Event, fsm FSM)
 }
 

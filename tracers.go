@@ -2,6 +2,7 @@ package fsm
 
 import (
 	"fmt"
+	"io"
 	"time"
 )
 
@@ -95,4 +96,14 @@ func (l *Logger) OnRejectedEvent(ev Event, state State, fsmData interface{}) {
 		time.Now(),
 		fmt.Sprintf("Rej : %s in %s%s", ev.Name(), state.Name(), detail),
 	})
+}
+
+func (l *Logger) Fprint(w io.Writer) error {
+	for _, entry := range l.Entries {
+		_, err := fmt.Fprintf(w, "%s: %s\n", entry.When.Format(time.RFC3339Nano), entry.Message)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -39,8 +39,8 @@ var _ = Describe("Threaded FSM", func() {
 		init.AddTransition(startingState)
 		startingState.AddTransition(offState)
 
-		offState.AddTransition(onState).SetTrigger("TurnOn")
-		onState.AddTransition(offState).SetTrigger("TurnOff")
+		offState.AddTransition(onState).SetEventTrigger("TurnOn")
+		onState.AddTransition(offState).SetEventTrigger("TurnOff")
 		fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)
 
 		stateMachineBuilder.
@@ -87,7 +87,7 @@ var _ = Describe("Threaded FSM", func() {
 			stateMachine.Dispatch(fsm.NewEvent("nosuch event", nil))
 			Expect(stateMachine.CurrentState().Name()).To(Equal("off"))
 		})
-		It("should not transition if an event is presented in the right state", func() {
+		It("should transition if an event is presented in the right state", func() {
 			stateMachine, err = stateMachineBuilder.BuildThreadedFSM()
 			Expect(err).NotTo(HaveOccurred())
 			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)

@@ -39,10 +39,10 @@ var _ = Describe("Plant UML Rendering", func() {
 			init.AddTransition(startingState)
 			startingState.AddTransition(offState)
 
-			offState.AddTransition(onState).SetTrigger("TurnOn").SetGuard(func(fsmData, eventData interface{}) bool { return true }, "power==active")
-			onState.AddTransition(offState).SetTrigger("TurnOff").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "perform effect")
+			offState.AddTransition(onState).SetEventTrigger("TurnOn").SetGuard(func(fsmData, eventData interface{}) bool { return true }, "power==active")
+			onState.AddTransition(offState).SetEventTrigger("TurnOff").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "perform effect")
 
-			onState.AddTransition(stateMachineBuilder.AddFinalState()).SetTrigger("FatalError").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "panic!")
+			onState.AddTransition(stateMachineBuilder.AddFinalState()).SetEventTrigger("FatalError").SetEffect(func(ev fsm.Event, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "panic!")
 
 			onState.OnExit(func(state fsm.State, fsmData interface{}, dispatcher fsm.Dispatcher) {}, "turn out lights")
 			fmt.Fprintf(GinkgoWriter, "fsm: %+v, %T\n", stateMachine, stateMachine)

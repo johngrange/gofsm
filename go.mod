@@ -3,14 +3,18 @@ module github.com/johngrange/gofsm
 go 1.17
 
 require (
-	github.com/onsi/ginkgo/v2 v2.3.1
-	github.com/onsi/gomega v1.22.1
+	github.com/onsi/ginkgo/v2 v2.8.3
+	github.com/onsi/gomega v1.27.0
 )
 
 require (
+	github.com/go-logr/logr v1.2.3 // indirect
+	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	golang.org/x/net v0.0.0-20220921203646-d300de134e69 // indirect
-	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38 // indirect
+	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
